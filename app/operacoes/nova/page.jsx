@@ -1,14 +1,22 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 
 export default function NovaOperacaoPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const anoAtivo = searchParams.get('ano') || new Date().getFullYear().toString();
+  
   const [formData, setFormData] = useState({
     nome: '',
     mesReferencia: 'abril', // Valor padrão
+    anoReferencia: anoAtivo,
+    tipo: 'CALL',
+    direcao: 'COMPRA',
+    strike: '',
+    preco: '',
     observacoes: ''
   });
   const [isLoading, setIsLoading] = useState(false);
@@ -16,9 +24,16 @@ export default function NovaOperacaoPage() {
   
   // Meses disponíveis
   const meses = [
-    'janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho',
+    'janeiro', 'fevereiro', 'marco', 'abril', 'maio', 'junho',
     'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'
   ];
+  
+  // Gerar anos para seleção (2 anos passados até 5 anos futuros)
+  const currentYear = new Date().getFullYear();
+  const anos = [];
+  for (let ano = currentYear - 2; ano <= currentYear + 5; ano++) {
+    anos.push(ano.toString());
+  }
   
   // Atualizar o estado do formulário
   const handleChange = (e) => {
@@ -36,12 +51,35 @@ export default function NovaOperacaoPage() {
     setError(null);
     
     try {
+      // Validar dados antes de enviar
+      if (!formData.nome.trim()) {
+        throw new Error('Nome é obrigatório');
+      }
+      
+      if (!formData.mesReferencia) {
+        throw new Error('Mês de referência é obrigatório');
+      }
+      
+      if (!formData.strike || isNaN(parseFloat(formData.strike))) {
+        throw new Error('Strike é obrigatório e deve ser um número válido');
+      }
+      
+      if (!formData.preco || isNaN(parseFloat(formData.preco))) {
+        throw new Error('Preço é obrigatório e deve ser um número válido');
+      }
+      
       const response = await fetch('/api/operacoes', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          ...formData,
+          ticker: formData.nome, // Usar nome como ticker
+          anoReferencia: parseInt(formData.anoReferencia),
+          strike: parseFloat(formData.strike),
+          preco: parseFloat(formData.preco),
+        }),
       });
       
       if (!response.ok) {
@@ -85,38 +123,134 @@ export default function NovaOperacaoPage() {
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
             <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="nome">
-              Nome da Operação
+              Ticker
             </label>
             <input
               id="nome"
               name="nome"
               type="text"
               className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-              placeholder="Ex: Trava de Alta PETR4"
+              placeholder="Ex: PETR4"
               value={formData.nome}
               onChange={handleChange}
               required
             />
           </div>
           
-          <div className="mb-4">
-            <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="mesReferencia">
-              Mês de Referência
-            </label>
-            <select
-              id="mesReferencia"
-              name="mesReferencia"
-              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-              value={formData.mesReferencia}
-              onChange={handleChange}
-              required
-            >
-              {meses.map(mes => (
-                <option key={mes} value={mes} className="capitalize">
-                  {mes.charAt(0).toUpperCase() + mes.slice(1)}
-                </option>
-              ))}
-            </select>
+          <div className="grid grid-cols-2 gap-4 mb-4">
+            <div>
+              <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="mesReferencia">
+                Mês de Referência
+              </label>
+              <select
+                id="mesReferencia"
+                name="mesReferencia"
+                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                value={formData.mesReferencia}
+                onChange={handleChange}
+                required
+              >
+                {meses.map(mes => (
+                  <option key={mes} value={mes} className="capitalize">
+                    {mes.charAt(0).toUpperCase() + mes.slice(1)}
+                  </option>
+                ))}
+              </select>
+            </div>
+            
+            <div>
+              <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="anoReferencia">
+                Ano de Referência
+              </label>
+              <select
+                id="anoReferencia"
+                name="anoReferencia"
+                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                value={formData.anoReferencia}
+                onChange={handleChange}
+                required
+              >
+                {anos.map(ano => (
+                  <option key={ano} value={ano}>
+                    {ano}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+          
+          <div className="grid grid-cols-2 gap-4 mb-4">
+            <div>
+              <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="tipo">
+                Tipo
+              </label>
+              <select
+                id="tipo"
+                name="tipo"
+                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                value={formData.tipo}
+                onChange={handleChange}
+                required
+              >
+                <option value="CALL">CALL</option>
+                <option value="PUT">PUT</option>
+              </select>
+            </div>
+            
+            <div>
+              <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="direcao">
+                Direção
+              </label>
+              <select
+                id="direcao"
+                name="direcao"
+                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                value={formData.direcao}
+                onChange={handleChange}
+                required
+              >
+                <option value="COMPRA">COMPRA</option>
+                <option value="VENDA">VENDA</option>
+              </select>
+            </div>
+          </div>
+          
+          <div className="grid grid-cols-2 gap-4 mb-4">
+            <div>
+              <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="strike">
+                Strike
+              </label>
+              <input
+                id="strike"
+                name="strike"
+                type="number"
+                step="0.01"
+                min="0"
+                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                placeholder="Ex: 35.50"
+                value={formData.strike}
+                onChange={handleChange}
+                required
+              />
+            </div>
+            
+            <div>
+              <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="preco">
+                Preço
+              </label>
+              <input
+                id="preco"
+                name="preco"
+                type="number"
+                step="0.01"
+                min="0"
+                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                placeholder="Ex: 1.25"
+                value={formData.preco}
+                onChange={handleChange}
+                required
+              />
+            </div>
           </div>
           
           <div className="mb-6">

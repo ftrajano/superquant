@@ -3,17 +3,34 @@ import { NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/db/mongodb';
 import Operacao from '@/lib/models/Operacao';
 
-export async function GET() {
+export async function GET(request) {
   try {
     // Testar conexão com o MongoDB
     console.log('Testando conexão com o MongoDB...');
     await connectToDatabase();
+    
+    // Verificar se devemos listar todas as operações
+    const { searchParams } = new URL(request.url);
+    const listar = searchParams.get('listar') === 'true';
+    
+    if (listar) {
+      // Listar todas as operações sem filtros
+      const operacoes = await Operacao.find().sort({ createdAt: -1 });
+      
+      return NextResponse.json({
+        success: true,
+        message: "Listagem de todas as operações",
+        totalOperacoes: operacoes.length,
+        operacoes: operacoes
+      });
+    }
     
     // Testar criação de operação
     console.log('Testando criação de operação...');
     
     const testOperacao = new Operacao({
       nome: 'Operação de Teste',
+      ticker: 'PETR4',  // Adicionando ticker
       tipo: 'CALL',
       direcao: 'COMPRA',
       strike: 50.0,
@@ -41,6 +58,10 @@ export async function GET() {
         message: 'Conexão e operações CRUD testadas com sucesso!',
         testOperacao: {
           id: testOperacao._id,
+          idVisual: testOperacao.idVisual,
+          ticker: testOperacao.ticker,
+          nome: testOperacao.nome,
+          dataAbertura: testOperacao.dataAbertura,
           criado: !!findResult,
           excluido: true
         }

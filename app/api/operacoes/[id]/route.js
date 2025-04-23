@@ -3,6 +3,8 @@ import { connectToDatabase } from '@/lib/db/mongodb';
 import Operacao from '@/lib/models/Operacao';
 import { NextResponse } from 'next/server';
 import mongoose from 'mongoose';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 
 // GET - Obter uma operacao por ID
 export async function GET(request, { params }) {
@@ -13,6 +15,15 @@ export async function GET(request, { params }) {
       return NextResponse.json(
         { error: 'ID invalido' },
         { status: 400 }
+      );
+    }
+    
+    // Obter sessão do usuário
+    const session = await getServerSession(authOptions);
+    if (!session?.user) {
+      return NextResponse.json(
+        { error: 'Não autenticado' },
+        { status: 401 }
       );
     }
     
@@ -50,6 +61,15 @@ export async function PUT(request, { params }) {
       );
     }
     
+    // Obter sessão do usuário
+    const session = await getServerSession(authOptions);
+    if (!session?.user) {
+      return NextResponse.json(
+        { error: 'Não autenticado' },
+        { status: 401 }
+      );
+    }
+    
     await connectToDatabase();
     
     const operacaoExistente = await Operacao.findById(id);
@@ -58,6 +78,14 @@ export async function PUT(request, { params }) {
       return NextResponse.json(
         { error: 'Operacao nao encontrada' },
         { status: 404 }
+      );
+    }
+    
+    // Verificar se o usuário é dono da operação
+    if (operacaoExistente.userId && operacaoExistente.userId.toString() !== session.user.id) {
+      return NextResponse.json(
+        { error: 'Permissão negada' },
+        { status: 403 }
       );
     }
     
@@ -112,6 +140,15 @@ export async function DELETE(request, { params }) {
       );
     }
     
+    // Obter sessão do usuário
+    const session = await getServerSession(authOptions);
+    if (!session?.user) {
+      return NextResponse.json(
+        { error: 'Não autenticado' },
+        { status: 401 }
+      );
+    }
+    
     await connectToDatabase();
     
     const operacao = await Operacao.findById(id);
@@ -120,6 +157,14 @@ export async function DELETE(request, { params }) {
       return NextResponse.json(
         { error: 'Operacao nao encontrada' },
         { status: 404 }
+      );
+    }
+    
+    // Verificar se o usuário é dono da operação
+    if (operacao.userId && operacao.userId.toString() !== session.user.id) {
+      return NextResponse.json(
+        { error: 'Permissão negada' },
+        { status: 403 }
       );
     }
     
