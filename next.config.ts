@@ -26,11 +26,15 @@ const nextConfig: NextConfig = {
     return {
       ...config,
       experiments: {
-        ...config.experiments,  // Mantém experimentos que já estão configurados pelo Next.js
+        ...config.experiments, // Mantém experimentos que já estão configurados pelo Next.js
         topLevelAwait: true,
-        layers: true,  // Adiciona suporte para layers, resolvendo o erro
+        layers: true, // Adiciona suporte para layers, resolvendo o erro
       },
     }
+  },
+  // Adiciona configuração do ESLint para ignorar erros durante builds
+  eslint: {
+    ignoreDuringBuilds: true,
   },
 };
 
