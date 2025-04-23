@@ -3,7 +3,7 @@ import { connectToDatabase } from '@/lib/db/mongodb';
 import Operacao from '@/lib/models/Operacao';
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { authOptions } from '@/lib/auth';
 
 // Função auxiliar para calcular o intervalo de datas para o período
 const calcularIntervaloDatas = (periodo) => {
