@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
@@ -11,7 +11,16 @@ import StatusBadge from '@/components/ui/StatusBadge.jsx';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
-export default function OperacoesPage() {
+// Componente de carregamento para o Suspense
+const LoadingUI = () => (
+  <div className="text-center py-8">
+    <div className="animate-spin h-8 w-8 border-4 border-blue-500 border-t-transparent rounded-full mx-auto mb-4"></div>
+    <p>Carregando...</p>
+  </div>
+);
+
+// Componente principal que usa useSearchParams
+const OperacoesContent = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const mesParam = searchParams.get('mes');
@@ -1053,5 +1062,14 @@ export default function OperacoesPage() {
       )}
       </div>
     </div>
+  );
+};
+
+// Componente wrapper com Suspense
+export default function OperacoesPage() {
+  return (
+    <Suspense fallback={<LoadingUI />}>
+      <OperacoesContent />
+    </Suspense>
   );
 }

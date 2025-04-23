@@ -1,10 +1,19 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 
-export default function NovaOperacaoPage() {
+// Componente de carregamento para o Suspense
+const LoadingUI = () => (
+  <div className="text-center py-8">
+    <div className="animate-spin h-8 w-8 border-4 border-blue-500 border-t-transparent rounded-full mx-auto mb-4"></div>
+    <p>Carregando...</p>
+  </div>
+);
+
+// Componente principal que usa useSearchParams
+const NovaOperacaoContent = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const anoAtivo = searchParams.get('ano') || new Date().getFullYear().toString();
@@ -286,5 +295,14 @@ export default function NovaOperacaoPage() {
         </form>
       </div>
     </div>
+  );
+};
+
+// Componente wrapper com Suspense
+export default function NovaOperacaoPage() {
+  return (
+    <Suspense fallback={<LoadingUI />}>
+      <NovaOperacaoContent />
+    </Suspense>
   );
 }
