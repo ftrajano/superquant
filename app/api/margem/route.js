@@ -70,7 +70,7 @@ const calcularMargemUtilizada = async (userId) => {
 };
 
 // GET - Buscar informações da margem do usuário
-export async function GET(request) {
+export async function GET(_request) {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {

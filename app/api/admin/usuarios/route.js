@@ -4,7 +4,7 @@ import { connectToDatabase } from '@/lib/db/mongodb';
 import User from '@/lib/models/User';
 
 // GET - Listar todos os usuários (apenas para admin)
-export async function GET(request) {
+export async function GET(_request) {
   try {
     // Verificar autenticação
     const session = await getServerSession();
