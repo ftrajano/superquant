@@ -162,17 +162,17 @@ export default function EditarOperacaoPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-[var(--surface-bg)]">
       <NavBar />
       <div className="container mx-auto px-4 py-6">
         <div className="flex justify-between items-center mb-6">
           <div>
-            <h1 className="text-2xl font-bold text-blue-800">Editar Operação</h1>
-            <p className="text-gray-600">Atualize os detalhes da operação</p>
+            <h1 className="text-2xl font-bold text-[var(--primary)]">Editar Operação</h1>
+            <p className="text-[var(--text-secondary)]">Atualize os detalhes da operação</p>
           </div>
           <Link 
             href="/operacoes" 
-            className="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700"
+            className="bg-[var(--surface-tertiary)] text-[var(--text-primary)] px-4 py-2 rounded hover:bg-[var(--surface-tonal-hover)]"
           >
             Voltar para Operações
           </Link>
@@ -181,31 +181,31 @@ export default function EditarOperacaoPage() {
         {/* Estado de carregamento */}
         {isLoading && (
           <div className="text-center py-8">
-            <div className="animate-spin h-8 w-8 border-4 border-blue-500 border-t-transparent rounded-full mx-auto mb-4"></div>
-            <p>Carregando dados da operação...</p>
+            <div className="animate-spin h-8 w-8 border-4 border-[var(--primary)] border-t-transparent rounded-full mx-auto mb-4"></div>
+            <p className="text-[var(--text-secondary)]">Carregando dados da operação...</p>
           </div>
         )}
 
         {/* Mensagem de erro */}
         {error && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+          <div className="bg-[var(--error)]/10 border border-[var(--error)]/20 text-[var(--error)] px-4 py-3 rounded mb-4">
             {error}
           </div>
         )}
 
         {/* Formulário de edição */}
         {!isLoading && !error && operacao && (
-          <div className="bg-white p-6 rounded-lg shadow-md">
+          <div className="bg-[var(--surface-card)] p-6 rounded-lg shadow-md">
             <form onSubmit={handleSubmit}>
               {operacao.status === 'Fechada' && (
-                <div className="mb-4 p-4 bg-yellow-50 border-l-4 border-yellow-400 text-yellow-800">
+                <div className="mb-4 p-4 bg-[var(--warning)]/10 border-l-4 border-[var(--warning)] text-[var(--warning)]">
                   <p className="font-medium">Atenção: esta operação já está fechada.</p>
                   <p className="text-sm">Algumas alterações podem não ser aplicáveis.</p>
                 </div>
               )}
 
               <div className="mb-6">
-                <h3 className="text-lg font-semibold text-gray-700 mb-2">Informações Básicas</h3>
+                <h3 className="text-lg font-semibold text-[var(--text-primary)] mb-2">Informações Básicas</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="ticker">
@@ -262,7 +262,7 @@ export default function EditarOperacaoPage() {
               </div>
 
               <div className="mb-6">
-                <h3 className="text-lg font-semibold text-gray-700 mb-2">Dados do Contrato</h3>
+                <h3 className="text-lg font-semibold text-[var(--text-primary)] mb-2">Dados do Contrato</h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
                     <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="strike">
@@ -321,7 +321,7 @@ export default function EditarOperacaoPage() {
               </div>
 
               <div className="mb-6">
-                <h3 className="text-lg font-semibold text-gray-700 mb-2">Margem e Observações</h3>
+                <h3 className="text-lg font-semibold text-[var(--text-primary)] mb-2">Margem e Observações</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="margemUtilizada">
@@ -359,29 +359,29 @@ export default function EditarOperacaoPage() {
 
               {/* Informações complementares apenas para visualização */}
               {operacao.status !== 'Aberta' && (
-                <div className="mb-6 p-4 bg-gray-50 rounded border border-gray-200">
-                  <h3 className="text-lg font-semibold text-gray-700 mb-2">Informações de Fechamento</h3>
+                <div className="mb-6 p-4 bg-[var(--surface-secondary)] rounded border border-[var(--surface-border)]">
+                  <h3 className="text-lg font-semibold text-[var(--text-primary)] mb-2">Informações de Fechamento</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <p className="text-sm font-medium text-gray-600">Status:</p>
+                      <p className="text-sm font-medium text-[var(--text-secondary)]">Status:</p>
                       <p className="text-sm">{operacao.status}</p>
                     </div>
                     {operacao.dataFechamento && (
                       <div>
-                        <p className="text-sm font-medium text-gray-600">Data de Fechamento:</p>
+                        <p className="text-sm font-medium text-[var(--text-secondary)]">Data de Fechamento:</p>
                         <p className="text-sm">{new Date(operacao.dataFechamento).toLocaleDateString('pt-BR')}</p>
                       </div>
                     )}
                     {operacao.precoFechamento && (
                       <div>
-                        <p className="text-sm font-medium text-gray-600">Preço de Fechamento:</p>
+                        <p className="text-sm font-medium text-[var(--text-secondary)]">Preço de Fechamento:</p>
                         <p className="text-sm">{formatarMoeda(operacao.precoFechamento)}</p>
                       </div>
                     )}
                     {operacao.resultadoTotal !== undefined && (
                       <div>
-                        <p className="text-sm font-medium text-gray-600">Resultado:</p>
-                        <p className={`text-sm font-medium ${operacao.resultadoTotal > 0 ? 'text-green-600' : operacao.resultadoTotal < 0 ? 'text-red-600' : ''}`}>
+                        <p className="text-sm font-medium text-[var(--text-secondary)]">Resultado:</p>
+                        <p className={`text-sm font-medium ${operacao.resultadoTotal > 0 ? 'text-[var(--success)]' : operacao.resultadoTotal < 0 ? 'text-[var(--error)]' : ''}`}>
                           {formatarMoeda(operacao.resultadoTotal)}
                         </p>
                       </div>
@@ -393,14 +393,14 @@ export default function EditarOperacaoPage() {
               <div className="flex items-center justify-between">
                 <button
                   type="submit"
-                  className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+                  className="bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white dark:text-black font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
                   disabled={isSubmitting}
                 >
                   {isSubmitting ? 'Salvando...' : 'Salvar Alterações'}
                 </button>
                 <Link 
                   href="/operacoes"
-                  className="inline-block align-baseline font-bold text-sm text-blue-600 hover:text-blue-800"
+                  className="inline-block align-baseline font-bold text-sm text-[var(--primary)] hover:text-[var(--primary-hover)]"
                 >
                   Cancelar
                 </Link>

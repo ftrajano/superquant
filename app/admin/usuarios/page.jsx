@@ -4,8 +4,11 @@ import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import NavBar from '@/components/NavBar';
+import { useTheme } from '@/components/ThemeProvider';
 
 export default function AdminUsuariosPage() {
+  // Obter o tema atual
+  const { theme } = useTheme();
   const { data: session, status } = useSession();
   const router = useRouter();
   const [users, setUsers] = useState([]);
@@ -90,11 +93,11 @@ export default function AdminUsuariosPage() {
 
   if (status === 'loading' || (status === 'authenticated' && session?.user?.role !== 'admin')) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-[var(--surface-bg)]">
         <NavBar />
         <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
           <div className="text-center">
-            <div className="animate-spin h-8 w-8 border-4 border-blue-500 border-t-transparent rounded-full mx-auto mb-4"></div>
+            <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4"></div>
             <p>Verificando permissões...</p>
           </div>
         </div>
@@ -103,54 +106,54 @@ export default function AdminUsuariosPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-[var(--surface-bg)]">
       <NavBar />
       <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-blue-800">Gerenciar Usuários</h1>
-          <p className="text-gray-600 mt-2">Gerencie permissões dos usuários do sistema</p>
+          <h1 className="text-3xl font-bold" style={{ color: theme === 'dark' ? '#49db0f' : 'var(--primary)' }}>Gerenciar Usuários</h1>
+          <p className="text-[var(--text-secondary)] mt-2">Gerencie permissões dos usuários do sistema</p>
         </div>
 
         {success && (
-          <div className="mb-6 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded">
+          <div className="mb-6 bg-success-bg border border-success text-success-dark px-4 py-3 rounded">
             {success}
           </div>
         )}
 
         {error && (
-          <div className="mb-6 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+          <div className="mb-6 bg-error-bg border border-error text-error-dark px-4 py-3 rounded">
             {error}
           </div>
         )}
 
         {loading ? (
           <div className="text-center py-8">
-            <div className="animate-spin h-8 w-8 border-4 border-blue-500 border-t-transparent rounded-full mx-auto mb-4"></div>
+            <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4"></div>
             <p>Carregando usuários...</p>
           </div>
         ) : (
-          <div className="bg-white shadow-md rounded-lg overflow-hidden">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
+          <div className="bg-[var(--surface-card)] shadow-md rounded-lg overflow-hidden">
+            <table className="min-w-full divide-y divide-[var(--surface-border)]">
+              <thead className="bg-primary-bg/10">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style={{ color: theme === 'dark' ? '#49db0f' : 'var(--primary-dark)' }}>
                     Nome
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style={{ color: theme === 'dark' ? '#49db0f' : 'var(--primary-dark)' }}>
                     Email
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style={{ color: theme === 'dark' ? '#49db0f' : 'var(--primary-dark)' }}>
                     Função
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style={{ color: theme === 'dark' ? '#49db0f' : 'var(--primary-dark)' }}>
                     Ações
                   </th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody className="bg-[var(--surface-card)] divide-y divide-[var(--surface-border)]">
                 {users.length === 0 ? (
                   <tr>
-                    <td colSpan="4" className="px-6 py-4 text-center text-gray-500">
+                    <td colSpan="4" className="px-6 py-4 text-center text-[var(--text-secondary)]">
                       Nenhum usuário encontrado
                     </td>
                   </tr>
@@ -158,18 +161,26 @@ export default function AdminUsuariosPage() {
                   users.map(user => (
                     <tr key={user._id}>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-gray-900">{user.name}</div>
+                        <div className="text-sm font-medium text-[var(--text-primary)]">{user.name}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-500">{user.email}</div>
+                        <div className="text-sm text-[var(--text-secondary)]">{user.email}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
-                          ${user.role === 'admin' 
-                            ? 'bg-purple-100 text-purple-800' 
-                            : user.role === 'modelo' 
-                              ? 'bg-green-100 text-green-800' 
-                              : 'bg-blue-100 text-blue-800'}`}>
+                        <span 
+                          className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                            user.role === 'admin' 
+                              ? 'bg-primary-bg' 
+                              : user.role === 'modelo' 
+                                ? 'bg-success-bg' 
+                                : 'bg-info-bg'
+                          }`}
+                          style={{ 
+                            color: theme === 'dark' ? '#49db0f' : 
+                              user.role === 'admin' ? 'var(--primary)' : 
+                              user.role === 'modelo' ? 'var(--success)' : 
+                              'var(--info)' 
+                          }}>
                           {user.role === 'admin' 
                             ? 'Administrador' 
                             : user.role === 'modelo' 
@@ -186,7 +197,7 @@ export default function AdminUsuariosPage() {
                                   console.log('Clicou em promover', user);
                                   handleRoleChange(user._id.toString(), 'modelo');
                                 }}
-                                className="text-green-600 hover:text-green-800"
+                                style={{ color: theme === 'dark' ? '#49db0f' : 'var(--success)' }}
                               >
                                 Promover para Modelo
                               </button>
@@ -196,7 +207,7 @@ export default function AdminUsuariosPage() {
                                   console.log('Clicou em remover modelo', user);
                                   handleRoleChange(user._id.toString(), 'user');
                                 }}
-                                className="text-blue-600 hover:text-blue-800"
+                                style={{ color: theme === 'dark' ? '#49db0f' : 'var(--info)' }}
                               >
                                 Remover Modelo
                               </button>

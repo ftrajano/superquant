@@ -4,90 +4,107 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useSession, signOut } from 'next-auth/react';
+import { useTheme } from './ThemeProvider';
 
 export default function NavBar() {
   const { data: session, status } = useSession();
   const pathname = usePathname();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { theme, toggleTheme } = useTheme();
 
   const isActive = (path) => pathname === path;
 
+  // Componentes reutilizáveis para padrões repetitivos
+  const NavLink = ({ href, children, isAdmin = false }) => {
+    const isCurrentlyActive = isActive(href);
+    const linkStyle = {
+      color: theme === 'dark' ? '#49db0f' : isAdmin ? 'var(--primary)' : isCurrentlyActive ? 'var(--text-primary)' : 'var(--text-secondary)'
+    };
+    
+    return (
+      <Link
+        href={href}
+        className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-colors ${
+          isCurrentlyActive ? 'border-primary font-semibold' : 'border-transparent hover:border-primary-light hover:text-primary'
+        }`}
+        style={linkStyle}
+      >
+        {children}
+      </Link>
+    );
+  };
+
+  const MobileNavLink = ({ href, children, isAdmin = false }) => {
+    const isCurrentlyActive = isActive(href);
+    const linkStyle = {
+      color: theme === 'dark' ? '#49db0f' : isAdmin ? 'var(--primary)' : isCurrentlyActive ? 'var(--primary)' : 'var(--text-secondary)'
+    };
+    
+    return (
+      <Link
+        href={href}
+        className={`block pl-3 pr-4 py-2 border-l-4 text-base font-medium ${
+          isCurrentlyActive ? 'bg-tonal border-primary' : 'border-transparent hover:bg-tonal hover:border-primary'
+        }`}
+        style={linkStyle}
+        onClick={() => setIsMenuOpen(false)}
+      >
+        {children}
+      </Link>
+    );
+  };
+
+  const ThemeToggleButton = ({ mobile = false }) => {
+    const buttonStyle = {
+      color: theme === 'dark' ? '#49db0f' : 'var(--text-secondary)'
+    };
+    
+    return (
+      <button
+        onClick={toggleTheme}
+        className={`p-2 ${mobile ? 'mr-2' : ''} rounded-full hover:bg-${mobile ? 'tonal' : 'surface-secondary'} transition-colors`}
+        style={buttonStyle}
+        aria-label="Alternar tema"
+      >
+        {theme === 'dark' ? (
+          // Ícone do sol para modo claro
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+            <path fillRule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clipRule="evenodd" />
+          </svg>
+        ) : (
+          // Ícone da lua para modo escuro
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+            <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z" />
+          </svg>
+        )}
+      </button>
+    );
+  };
+
   return (
-    <nav className="bg-white shadow-md">
+    <nav className="bg-surface-bg dark:bg-surface-tonal shadow-md">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex">
             <div className="flex-shrink-0 flex items-center">
-              <Link href="/" className="text-xl font-bold text-blue-600">
+              <Link href="/" className="text-xl font-bold" style={{ color: theme === 'dark' ? '#49db0f' : 'var(--primary)' }}>
                 SuperQuant
               </Link>
             </div>
             <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
               {status === 'authenticated' && (
                 <>
-                  <Link
-                    href="/"
-                    className={`${
-                      isActive('/') 
-                        ? 'border-blue-500 text-gray-900'
-                        : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
-                    } inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium`}
-                  >
-                    Dashboard
-                  </Link>
-                  <Link
-                    href="/operacoes"
-                    className={`${
-                      isActive('/operacoes')
-                        ? 'border-blue-500 text-gray-900'
-                        : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
-                    } inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium`}
-                  >
-                    Minhas Operações
-                  </Link>
-                  <Link
-                    href="/copytrading"
-                    className={`${
-                      isActive('/copytrading')
-                        ? 'border-blue-500 text-gray-900'
-                        : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
-                    } inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium`}
-                  >
-                    CopyTrading
-                  </Link>
-                  <Link
-                    href="/relatorios"
-                    className={`${
-                      isActive('/relatorios')
-                        ? 'border-blue-500 text-gray-900'
-                        : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
-                    } inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium`}
-                  >
-                    Relatórios
-                  </Link>
-                  <Link
-                    href="/margem"
-                    className={`${
-                      isActive('/margem')
-                        ? 'border-blue-500 text-gray-900'
-                        : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
-                    } inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium`}
-                  >
-                    Margem
-                  </Link>
+                  <NavLink href="/">Dashboard</NavLink>
+                  <NavLink href="/operacoes">Minhas Operações</NavLink>
+                  <NavLink href="/copytrading">CopyTrading</NavLink>
+                  <NavLink href="/relatorios">Relatórios</NavLink>
+                  <NavLink href="/margem">Margem</NavLink>
                   
                   {/* Links de administração - apenas para admins */}
                   {session?.user?.role === 'admin' && (
-                    <Link
-                      href="/admin/usuarios"
-                      className={`${
-                        isActive('/admin/usuarios')
-                          ? 'border-purple-500 text-gray-900'
-                          : 'border-transparent text-purple-500 hover:border-purple-300 hover:text-purple-700'
-                      } inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium`}
-                    >
+                    <NavLink href="/admin/usuarios" isAdmin>
                       Gerenciar Usuários
-                    </Link>
+                    </NavLink>
                   )}
                 </>
               )}
@@ -97,19 +114,21 @@ export default function NavBar() {
             {status === 'authenticated' ? (
               <div className="ml-3 relative">
                 <div className="flex items-center gap-3">
+                  {/* Botão de alternar tema */}
+                  <ThemeToggleButton />
+                  
                   <Link
                     href="/perfil"
                     className={`${
-                      isActive('/perfil')
-                        ? 'text-blue-700'
-                        : 'text-gray-700 hover:text-blue-600'
-                    } text-sm font-medium`}
+                      isActive('/perfil') ? 'font-semibold' : ''
+                    } text-sm font-medium transition-colors`}
+                    style={{ color: theme === 'dark' ? '#49db0f' : isActive('/perfil') ? 'var(--primary)' : 'var(--text-secondary)' }}
                   >
                     Olá, {session.user.name}
                   </Link>
                   <button
                     onClick={() => signOut({ callbackUrl: '/login' })}
-                    className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded text-white bg-red-600 hover:bg-red-700"
+                    className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-bold rounded text-white bg-[#0a6d3a] hover:bg-[#085c30] dark:bg-[#4CAF50] dark:text-black dark:hover:bg-[#388E3C] transition-colors"
                   >
                     Sair
                   </button>
@@ -117,15 +136,20 @@ export default function NavBar() {
               </div>
             ) : (
               <div className="flex items-center gap-2">
+                {/* Botão de alternar tema */}
+                <ThemeToggleButton />
+              
                 <Link
                   href="/login"
-                  className="inline-flex items-center px-3 py-1.5 border border-gray-300 text-xs font-medium rounded text-gray-700 bg-white hover:bg-gray-50"
+                  className="inline-flex items-center px-3 py-1.5 border border-[var(--surface-border)] text-xs font-medium rounded bg-[var(--surface-card)] hover:bg-[var(--surface-secondary)] transition-colors"
+                  style={{ color: theme === 'dark' ? '#49db0f' : 'var(--text-primary)' }}
                 >
                   Entrar
                 </Link>
                 <Link
                   href="/cadastro"
-                  className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded text-white bg-blue-600 hover:bg-blue-700"
+                  className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-bold rounded bg-[#0a6d3a] hover:bg-[#085c30] dark:bg-[var(--surface-card)] dark:hover:bg-[var(--surface-secondary)] transition-colors"
+                  style={{color: theme === 'dark' ? '#49db0f' : 'white'}}
                 >
                   Cadastre-se
                 </Link>
@@ -137,7 +161,8 @@ export default function NavBar() {
           <div className="flex items-center sm:hidden">
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100"
+              className="inline-flex items-center justify-center p-2 rounded-md hover:bg-surface-secondary transition-colors"
+              style={{ color: theme === 'dark' ? '#49db0f' : 'var(--text-secondary)' }}
             >
               <span className="sr-only">Open main menu</span>
               <svg
@@ -164,118 +189,54 @@ export default function NavBar() {
       </div>
 
       {/* Mobile menu */}
-      <div className={`${isMenuOpen ? 'block' : 'hidden'} sm:hidden`}>
+      <div className={`${isMenuOpen ? 'block' : 'hidden'} sm:hidden bg-surface-card`}>
         <div className="pt-2 pb-3 space-y-1">
           {status === 'authenticated' ? (
             <>
-              <Link
-                href="/"
-                className={`${
-                  isActive('/')
-                    ? 'bg-blue-50 border-blue-500 text-blue-700'
-                    : 'border-transparent text-gray-500 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-700'
-                } block pl-3 pr-4 py-2 border-l-4 text-base font-medium`}
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Dashboard
-              </Link>
-              <Link
-                href="/operacoes"
-                className={`${
-                  isActive('/operacoes')
-                    ? 'bg-blue-50 border-blue-500 text-blue-700'
-                    : 'border-transparent text-gray-500 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-700'
-                } block pl-3 pr-4 py-2 border-l-4 text-base font-medium`}
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Minhas Operações
-              </Link>
-              <Link
-                href="/copytrading"
-                className={`${
-                  isActive('/copytrading')
-                    ? 'bg-blue-50 border-blue-500 text-blue-700'
-                    : 'border-transparent text-gray-500 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-700'
-                } block pl-3 pr-4 py-2 border-l-4 text-base font-medium`}
-                onClick={() => setIsMenuOpen(false)}
-              >
-                CopyTrading
-              </Link>
-              <Link
-                href="/relatorios"
-                className={`${
-                  isActive('/relatorios')
-                    ? 'bg-blue-50 border-blue-500 text-blue-700'
-                    : 'border-transparent text-gray-500 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-700'
-                } block pl-3 pr-4 py-2 border-l-4 text-base font-medium`}
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Relatórios
-              </Link>
-              <Link
-                href="/margem"
-                className={`${
-                  isActive('/margem')
-                    ? 'bg-blue-50 border-blue-500 text-blue-700'
-                    : 'border-transparent text-gray-500 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-700'
-                } block pl-3 pr-4 py-2 border-l-4 text-base font-medium`}
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Margem
-              </Link>
+              <MobileNavLink href="/">Dashboard</MobileNavLink>
+              <MobileNavLink href="/operacoes">Minhas Operações</MobileNavLink>
+              <MobileNavLink href="/copytrading">CopyTrading</MobileNavLink>
+              <MobileNavLink href="/relatorios">Relatórios</MobileNavLink>
+              <MobileNavLink href="/margem">Margem</MobileNavLink>
+              
               {/* Admin links para mobile */}
               {session?.user?.role === 'admin' && (
-                <Link
-                  href="/admin/usuarios"
-                  className={`${
-                    isActive('/admin/usuarios')
-                      ? 'bg-purple-50 border-purple-500 text-purple-700'
-                      : 'border-transparent text-purple-500 hover:bg-gray-50 hover:border-purple-300 hover:text-purple-700'
-                  } block pl-3 pr-4 py-2 border-l-4 text-base font-medium`}
-                  onClick={() => setIsMenuOpen(false)}
-                >
+                <MobileNavLink href="/admin/usuarios" isAdmin>
                   Gerenciar Usuários
-                </Link>
+                </MobileNavLink>
               )}
               
-              <Link
-                href="/perfil"
-                className={`${
-                  isActive('/perfil')
-                    ? 'bg-blue-50 border-blue-500 text-blue-700'
-                    : 'border-transparent text-gray-600 hover:bg-gray-50 hover:border-blue-300 hover:text-blue-700'
-                } block pl-3 pr-4 py-2 border-l-4 text-base font-medium`}
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Meu Perfil
-              </Link>
+              <MobileNavLink href="/perfil">Meu Perfil</MobileNavLink>
+              
+              <div className="flex items-center pl-3 pr-4 py-2">
+                <ThemeToggleButton mobile />
+                <span className="text-sm" style={{ color: theme === 'dark' ? '#49db0f' : 'var(--text-secondary)' }}>
+                  {theme === 'dark' ? 'Modo Claro' : 'Modo Escuro'}
+                </span>
+              </div>
               
               <button
                 onClick={() => {
                   signOut({ callbackUrl: '/login' });
                   setIsMenuOpen(false);
                 }}
-                className="block w-full text-left pl-3 pr-4 py-2 border-l-4 border-transparent text-base font-medium text-red-500 hover:bg-gray-50 hover:border-red-300"
+                className="block w-full text-left pl-3 pr-4 py-2 border-l-4 border-transparent text-base font-medium hover:bg-tonal hover:border-error"
+                style={{ color: theme === 'dark' ? '#49db0f' : 'var(--error)' }}
               >
                 Sair
               </button>
             </>
           ) : (
             <>
-              <Link
-                href="/login"
-                className="block pl-3 pr-4 py-2 border-l-4 border-transparent text-base font-medium text-gray-500 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-700"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Entrar
-              </Link>
-              <Link
-                href="/cadastro"
-                className="block pl-3 pr-4 py-2 border-l-4 border-transparent text-base font-medium text-gray-500 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-700"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Cadastre-se
-              </Link>
+              <MobileNavLink href="/login">Entrar</MobileNavLink>
+              <MobileNavLink href="/cadastro">Cadastre-se</MobileNavLink>
+              
+              <div className="flex items-center pl-3 pr-4 py-2">
+                <ThemeToggleButton mobile />
+                <span className="text-sm" style={{ color: theme === 'dark' ? '#49db0f' : 'var(--text-secondary)' }}>
+                  {theme === 'dark' ? 'Modo Claro' : 'Modo Escuro'}
+                </span>
+              </div>
             </>
           )}
         </div>

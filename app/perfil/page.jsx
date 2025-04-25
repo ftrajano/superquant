@@ -29,8 +29,8 @@ export default function PerfilPage() {
   // Se ainda estiver carregando a sessão
   if (status === 'loading') {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin h-8 w-8 border-4 border-blue-500 border-t-transparent rounded-full"></div>
+      <div className="min-h-screen bg-[var(--surface-bg)] flex items-center justify-center">
+        <div className="animate-spin h-8 w-8 border-4 border-[var(--primary)] border-t-transparent rounded-full"></div>
       </div>
     );
   }
@@ -98,62 +98,62 @@ export default function PerfilPage() {
   };
   
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-[var(--surface-bg)]">
       <NavBar />
       <div className="container mx-auto px-4 py-6">
         <div className="flex justify-between items-center mb-6">
           <div>
-            <h1 className="text-2xl font-bold text-blue-800">Meu Perfil</h1>
-            <p className="text-gray-600">Gerencie suas informações pessoais</p>
+            <h1 className="text-2xl font-bold text-[var(--primary)]">Meu Perfil</h1>
+            <p className="text-[var(--text-secondary)]">Gerencie suas informações pessoais</p>
           </div>
         </div>
         
         {/* Informações do Usuário */}
-        <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-          <h2 className="text-xl font-semibold mb-4">Informações Pessoais</h2>
+        <div className="bg-[var(--surface-card)] rounded-lg shadow-md p-6 mb-6">
+          <h2 className="text-xl font-semibold text-[var(--text-primary)] mb-4">Informações Pessoais</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <p className="text-sm font-medium text-gray-500">Nome</p>
-              <p className="text-lg">{session.user.name}</p>
+              <p className="text-sm font-medium text-[var(--text-tertiary)]">Nome</p>
+              <p className="text-lg text-[var(--text-primary)]">{session.user.name}</p>
             </div>
             <div>
-              <p className="text-sm font-medium text-gray-500">Email</p>
-              <p className="text-lg">{session.user.email}</p>
+              <p className="text-sm font-medium text-[var(--text-tertiary)]">Email</p>
+              <p className="text-lg text-[var(--text-primary)]">{session.user.email}</p>
             </div>
             <div>
-              <p className="text-sm font-medium text-gray-500">Tipo de Conta</p>
-              <p className="text-lg capitalize">{session.user.role || 'Usuário'}</p>
+              <p className="text-sm font-medium text-[var(--text-tertiary)]">Tipo de Conta</p>
+              <p className="text-lg capitalize text-[var(--text-primary)]">{session.user.role || 'Usuário'}</p>
             </div>
           </div>
         </div>
         
         {/* Alterar Senha */}
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <h2 className="text-xl font-semibold mb-4">Alterar Senha</h2>
+        <div className="bg-[var(--surface-card)] rounded-lg shadow-md p-6">
+          <h2 className="text-xl font-semibold text-[var(--text-primary)] mb-4">Alterar Senha</h2>
           
           {/* Mensagens de erro e sucesso */}
           {error && (
-            <div className="mb-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+            <div className="mb-4 bg-[var(--error)]/10 border border-[var(--error)]/20 text-[var(--error)] px-4 py-3 rounded">
               {error}
             </div>
           )}
           
           {successMessage && (
-            <div className="mb-4 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded">
+            <div className="mb-4 bg-[var(--success)]/10 border border-[var(--success)]/20 text-[var(--success)] px-4 py-3 rounded">
               {successMessage}
             </div>
           )}
           
           <form onSubmit={handleSubmitPassword}>
             <div className="mb-4">
-              <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="currentPassword">
+              <label className="block text-[var(--text-primary)] text-sm font-bold mb-2" htmlFor="currentPassword">
                 Senha Atual
               </label>
               <input
                 id="currentPassword"
                 name="currentPassword"
                 type="password"
-                className="shadow appearance-none border rounded w-full md:w-1/2 py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                className="shadow appearance-none border border-[var(--surface-border)] rounded w-full md:w-1/2 py-2 px-3 text-[var(--text-primary)] bg-[var(--surface-bg)] leading-tight focus:outline-none focus:shadow-outline focus:border-[var(--primary)]"
                 value={passwordData.currentPassword}
                 onChange={handleChangePassword}
                 required
@@ -161,31 +161,31 @@ export default function PerfilPage() {
             </div>
             
             <div className="mb-4">
-              <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="newPassword">
+              <label className="block text-[var(--text-primary)] text-sm font-bold mb-2" htmlFor="newPassword">
                 Nova Senha
               </label>
               <input
                 id="newPassword"
                 name="newPassword"
                 type="password"
-                className="shadow appearance-none border rounded w-full md:w-1/2 py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                className="shadow appearance-none border border-[var(--surface-border)] rounded w-full md:w-1/2 py-2 px-3 text-[var(--text-primary)] bg-[var(--surface-bg)] leading-tight focus:outline-none focus:shadow-outline focus:border-[var(--primary)]"
                 value={passwordData.newPassword}
                 onChange={handleChangePassword}
                 required
                 minLength={6}
               />
-              <p className="text-xs text-gray-500 mt-1">A senha deve ter pelo menos 6 caracteres</p>
+              <p className="text-xs text-[var(--text-tertiary)] mt-1">A senha deve ter pelo menos 6 caracteres</p>
             </div>
             
             <div className="mb-6">
-              <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="confirmPassword">
+              <label className="block text-[var(--text-primary)] text-sm font-bold mb-2" htmlFor="confirmPassword">
                 Confirmar Nova Senha
               </label>
               <input
                 id="confirmPassword"
                 name="confirmPassword"
                 type="password"
-                className="shadow appearance-none border rounded w-full md:w-1/2 py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                className="shadow appearance-none border border-[var(--surface-border)] rounded w-full md:w-1/2 py-2 px-3 text-[var(--text-primary)] bg-[var(--surface-bg)] leading-tight focus:outline-none focus:shadow-outline focus:border-[var(--primary)]"
                 value={passwordData.confirmPassword}
                 onChange={handleChangePassword}
                 required
@@ -195,7 +195,7 @@ export default function PerfilPage() {
             <div>
               <button
                 type="submit"
-                className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+                className="bg-[var(--primary)] hover:bg-[var(--primary-dark)] text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
                 disabled={isLoading}
               >
                 {isLoading ? 'Alterando...' : 'Alterar Senha'}

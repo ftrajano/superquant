@@ -391,13 +391,13 @@ const OperacoesContent = () => {
   };
   
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-[var(--background)]">
       <NavBar />
       <div className="container mx-auto px-4 py-6">
       {/* Modal para fechar operação */}
       {showFecharModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-md">
+          <div className="bg-[var(--surface-card)] p-6 rounded-lg shadow-xl w-full max-w-md">
             <h2 className="text-xl font-semibold text-blue-800 mb-4">Fechar Operação</h2>
             <div className="mb-4">
               <p className="font-medium">{operacaoParaFechar?.ticker}</p>
@@ -528,19 +528,19 @@ const OperacoesContent = () => {
 
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-blue-800">Minhas Operações</h1>
-          <p className="text-gray-600">Gerenciamento de operações pessoais</p>
+          <h1 className="text-2xl font-bold text-[var(--primary)] dark:text-[var(--primary)]">Minhas Operações</h1>
+          <p className="text-[var(--text-secondary)] dark:text-[var(--text-secondary)]">Gerenciamento de operações pessoais</p>
         </div>
         <div className="flex space-x-2">
           <Link 
             href="/margem"
-            className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+            className="btn btn-primary px-4 py-2 rounded"
           >
             Controle de Margem
           </Link>
           <button 
             onClick={() => setShowForm(!showForm)}
-            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+            className="btn btn-primary px-4 py-2 rounded"
           >
             {showForm ? 'Cancelar' : '+ Nova Operação'}
           </button>
@@ -568,8 +568,8 @@ const OperacoesContent = () => {
             onClick={() => setStatusFiltro('Todos')}
             className={`px-4 py-2 text-sm font-medium rounded-l-md ${
               statusFiltro === 'Todos' 
-                ? 'bg-blue-600 text-white' 
-                : 'bg-white text-gray-700 hover:bg-gray-50'
+                ? 'bg-[var(--primary)] text-white' 
+                : 'bg-[var(--surface-card)] text-[var(--text-secondary)] hover:bg-[var(--surface-secondary)]'
             }`}
           >
             Todas
@@ -579,8 +579,8 @@ const OperacoesContent = () => {
             onClick={() => setStatusFiltro('Aberta')}
             className={`px-4 py-2 text-sm font-medium ${
               statusFiltro === 'Aberta' 
-                ? 'bg-blue-600 text-white' 
-                : 'bg-white text-gray-700 hover:bg-gray-50'
+                ? 'bg-[var(--primary)] text-white' 
+                : 'bg-[var(--surface-card)] text-[var(--text-secondary)] hover:bg-[var(--surface-secondary)]'
             }`}
           >
             Abertas
@@ -590,8 +590,8 @@ const OperacoesContent = () => {
             onClick={() => setStatusFiltro('Fechada')}
             className={`px-4 py-2 text-sm font-medium rounded-r-md ${
               statusFiltro === 'Fechada' 
-                ? 'bg-blue-600 text-white' 
-                : 'bg-white text-gray-700 hover:bg-gray-50'
+                ? 'bg-[var(--primary)] text-white' 
+                : 'bg-[var(--surface-card)] text-[var(--text-secondary)] hover:bg-[var(--surface-secondary)]'
             }`}
           >
             Fechadas
@@ -624,7 +624,7 @@ const OperacoesContent = () => {
       {/* Modal de Resumo da Cesta */}
       {mostraResumo && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-md">
+          <div className="bg-[var(--surface-card)] p-6 rounded-lg shadow-xl w-full max-w-md">
             <h2 className="text-xl font-semibold text-blue-800 mb-4">Resumo da Cesta</h2>
             <div className="mb-4">
               <p className="text-lg font-bold mb-2">
@@ -646,14 +646,14 @@ const OperacoesContent = () => {
             
             <div className="max-h-60 overflow-y-auto mb-4">
               <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
+                <thead className="bg-[var(--surface-secondary)]">
                   <tr>
                     <th className="px-3 py-2 text-left text-xs font-medium text-gray-500">Ticker</th>
                     <th className="px-3 py-2 text-left text-xs font-medium text-gray-500">Tipo</th>
                     <th className="px-3 py-2 text-left text-xs font-medium text-gray-500">Resultado</th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+                <tbody className="bg-[var(--surface-card)] divide-y divide-[var(--surface-border)]">
                   {operacoes
                     .filter(op => cestalSelecionada.includes(op._id))
                     .map(op => (
@@ -698,7 +698,7 @@ const OperacoesContent = () => {
       
       {/* Formulário de nova operação */}
       {showForm && (
-        <div className="bg-white p-6 rounded-lg shadow-md mb-6">
+        <div className="bg-[var(--surface-card)] p-6 rounded-lg shadow-md mb-6">
           <h2 className="text-xl font-semibold text-blue-800 mb-4">Nova Operação</h2>
           <form onSubmit={handleSubmit}>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
@@ -866,14 +866,14 @@ const OperacoesContent = () => {
       {/* Estado de carregamento */}
       {isLoading && (
         <div className="text-center py-8">
-          <div className="animate-spin h-8 w-8 border-4 border-blue-500 border-t-transparent rounded-full mx-auto mb-4"></div>
-          <p>Carregando operações...</p>
+          <div className="animate-spin h-8 w-8 border-4 border-[var(--primary)] border-t-transparent rounded-full mx-auto mb-4"></div>
+          <p className="text-[var(--text-secondary)]">Carregando operações...</p>
         </div>
       )}
       
       {/* Mensagem de erro */}
       {error && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+        <div className="bg-[var(--error)]/10 border border-[var(--error)]/20 text-[var(--error)] px-4 py-3 rounded mb-4">
           {error}
         </div>
       )}
@@ -882,47 +882,47 @@ const OperacoesContent = () => {
       {!isLoading && !error && (
         <>
           {operacoes.length === 0 ? (
-            <div className="text-center py-8 bg-gray-50 rounded-lg">
-              <p className="text-gray-500">Nenhuma operação encontrada para {mesAtivo}.</p>
+            <div className="text-center py-8 bg-[var(--surface-secondary)] rounded-lg">
+              <p className="text-[var(--text-secondary)]">Nenhuma operação encontrada para {mesAtivo}.</p>
               <button 
                 onClick={() => setShowForm(true)}
-                className="mt-4 inline-block bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+                className="mt-4 inline-block btn btn-primary px-4 py-2 rounded"
               >
                 Criar Nova Operação
               </button>
             </div>
           ) : (
-            <div className="bg-white rounded-lg shadow overflow-hidden overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
+            <div className="bg-[var(--surface-card)] rounded-lg shadow overflow-hidden overflow-x-auto">
+              <table className="min-w-full divide-y divide-[var(--surface-border)]">
+                <thead className="bg-[var(--surface-secondary)]">
                   <tr>
-                    <th className="px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                    <th className="px-2 py-3 text-center text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider whitespace-nowrap">
                       Sel
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Ticker</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Abertura</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Tipo</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Direção</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Strike</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Preço</th>
-                    <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Qtde</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Valor Total</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Margem</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Status</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Resultado</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Ações</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider whitespace-nowrap">Ticker</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider whitespace-nowrap">Abertura</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider whitespace-nowrap">Tipo</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider whitespace-nowrap">Direção</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider whitespace-nowrap">Strike</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider whitespace-nowrap">Preço</th>
+                    <th className="px-3 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider whitespace-nowrap">Qtde</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider whitespace-nowrap">Valor Total</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider whitespace-nowrap">Margem</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider whitespace-nowrap">Status</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider whitespace-nowrap">Resultado</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider whitespace-nowrap">Ações</th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+                <tbody className="bg-[var(--surface-card)] divide-y divide-[var(--surface-border)]">
                   {operacoes.map(op => (
                     <tr 
                       key={op._id} 
-                      className={`hover:bg-gray-50 ${
+                      className={`hover:bg-[var(--surface-secondary)] dark:hover:bg-[var(--surface-tertiary)] ${
                         op.status === 'Fechada' 
                           ? op.resultadoTotal > 0 
-                            ? 'bg-green-50' 
+                            ? 'bg-green-50 dark:bg-green-900/30' 
                             : op.resultadoTotal < 0 
-                              ? 'bg-red-50' 
+                              ? 'bg-red-50 dark:bg-red-900/30' 
                               : '' 
                           : ''
                       }`}
@@ -932,25 +932,25 @@ const OperacoesContent = () => {
                           type="checkbox"
                           checked={cestalSelecionada.includes(op._id)}
                           onChange={() => handleToggleSelecao(op._id)}
-                          className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                          className="h-4 w-4 text-[var(--primary)] border-[var(--surface-border)] rounded focus:ring-[var(--primary)]"
                         />
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap">
-                        <Link href={`/operacoes/${op._id}`} className="text-blue-600 hover:text-blue-800 font-medium">
+                        <Link href={`/operacoes/${op._id}`} className="text-[var(--primary)] hover:text-[var(--primary-hover)] font-medium">
                           {op.ticker || (op.nome ? op.nome : 'N/A')}
                         </Link>
                         {op.idVisual && (
-                          <div className="text-xs text-gray-500">
+                          <div className="text-xs text-[var(--text-tertiary)]">
                             {op.idVisual}
                           </div>
                         )}
                       </td>
                       
                       <td className="px-4 py-3 whitespace-nowrap text-sm">
-                        <div className="text-gray-600">
+                        <div className="text-[var(--text-secondary)]">
                           <div>{formatarData(op.dataAbertura)}</div>
                           {op.status === 'Fechada' && op.dataFechamento && (
-                            <div className="text-xs">
+                            <div className="text-xs text-[var(--text-tertiary)]">
                               F: {formatarData(op.dataFechamento)}
                             </div>
                           )}

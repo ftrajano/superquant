@@ -1,32 +1,42 @@
 // components/ui/StatusBadge.jsx
-import React from 'react';
+'use client';
 
-export default function StatusBadge({ status }) {
-  let colorClass = '';
+import Badge from './Badge';
+
+/**
+ * Componente StatusBadge - Badge especializado para exibir status de operações
+ * 
+ * @param {Object} props
+ * @param {string} props.status - Status da operação ou item
+ * @param {string} [props.className=''] - Classes adicionais
+ */
+export default function StatusBadge({ status, className = '' }) {
+  // Mapear o status para a variante do Badge
+  let variant = 'default';
   
   switch (status) {
     case 'Aberta':
-      colorClass = 'bg-green-100 text-green-800';
+      variant = 'success';
       break;
     case 'Fechada':
-      colorClass = 'bg-gray-100 text-gray-800';
+      variant = 'default';
       break;
     case 'Parcialmente Fechada':
-      colorClass = 'bg-yellow-100 text-yellow-800';
+      variant = 'warning';
       break;
     case 'Compra':
-      colorClass = 'bg-blue-100 text-blue-800';
+      variant = 'info';
       break;
     case 'Venda':
-      colorClass = 'bg-red-100 text-red-800';
+      variant = 'error';
       break;
     default:
-      colorClass = 'bg-gray-100 text-gray-800';
+      variant = 'default';
   }
   
   return (
-    <span className={`px-2 py-1 rounded-full text-xs ${colorClass}`}>
+    <Badge variant={variant} className={className}>
       {status}
-    </span>
+    </Badge>
   );
 }

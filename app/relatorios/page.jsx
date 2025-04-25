@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
+import NavBar from '@/components/NavBar';
 
 export default function RelatoriosPage() {
   // Estados
@@ -113,8 +114,8 @@ export default function RelatoriosPage() {
   // Componente de card para métricas
   const MetricCard = ({ title, value, description, color, isMoney = false }) => {
     return (
-      <div className="bg-white rounded-lg shadow p-4">
-        <h3 className="text-gray-500 text-sm">{title}</h3>
+      <div className="bg-[var(--surface-card)] rounded-lg shadow p-4">
+        <h3 className="text-[var(--text-tertiary)] text-sm">{title}</h3>
         <div className="flex items-end mt-1">
           {isMoney ? (
             // MoneyValue envolve o conteúdo em um fragmento para não renderizar o valor original
@@ -124,25 +125,21 @@ export default function RelatoriosPage() {
           )}
           {/* Removida a exibição de tendência */}
         </div>
-        {description && <p className="text-xs text-gray-400 mt-1">{description}</p>}
+        {description && <p className="text-xs text-[var(--text-tertiary)] mt-1">{description}</p>}
       </div>
     );
   };
   
   return (
-    <div className="container mx-auto px-4 py-6">
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <h1 className="text-3xl font-bold text-blue-800">Superquant</h1>
-          <p className="text-gray-600 text-lg">Relatórios & Análises</p>
+    <div className="min-h-screen bg-[var(--surface-bg)]">
+      <NavBar />
+      <div className="container mx-auto px-4 py-6">
+        <div className="flex justify-between items-center mb-6">
+          <div>
+            <h1 className="text-2xl font-bold text-[var(--primary)]">Relatórios & Análises</h1>
+            <p className="text-[var(--text-secondary)]">Acompanhe seu desempenho e métricas</p>
+          </div>
         </div>
-        <Link 
-          href="/operacoes" 
-          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-        >
-          Voltar para Operações
-        </Link>
-      </div>
       
       {/* Filtros de Período */}
       <div className="mb-6">
@@ -211,8 +208,8 @@ export default function RelatoriosPage() {
             onClick={() => setPeriodo('ultimoMes')}
             className={`px-4 py-2 text-sm font-medium ${
               periodo === 'ultimoMes' 
-                ? 'bg-blue-600 text-white' 
-                : 'bg-white text-gray-700 hover:bg-gray-50'
+                ? 'bg-[var(--primary)] text-white' 
+                : 'bg-[var(--surface-card)] text-[var(--text-secondary)] hover:bg-[var(--surface-secondary)]'
             } rounded-l-md`}
           >
             Último Mês
@@ -222,8 +219,8 @@ export default function RelatoriosPage() {
             onClick={() => setPeriodo('ultimos3meses')}
             className={`px-4 py-2 text-sm font-medium ${
               periodo === 'ultimos3meses' 
-                ? 'bg-blue-600 text-white' 
-                : 'bg-white text-gray-700 hover:bg-gray-50'
+                ? 'bg-[var(--primary)] text-white' 
+                : 'bg-[var(--surface-card)] text-[var(--text-secondary)] hover:bg-[var(--surface-secondary)]'
             }`}
           >
             Últimos 3 Meses
@@ -233,8 +230,8 @@ export default function RelatoriosPage() {
             onClick={() => setPeriodo('ultimos6meses')}
             className={`px-4 py-2 text-sm font-medium ${
               periodo === 'ultimos6meses' 
-                ? 'bg-blue-600 text-white' 
-                : 'bg-white text-gray-700 hover:bg-gray-50'
+                ? 'bg-[var(--primary)] text-white' 
+                : 'bg-[var(--surface-card)] text-[var(--text-secondary)] hover:bg-[var(--surface-secondary)]'
             }`}
           >
             Últimos 6 Meses
@@ -244,8 +241,8 @@ export default function RelatoriosPage() {
             onClick={() => setPeriodo('mesEspecifico')}
             className={`px-4 py-2 text-sm font-medium ${
               periodo === 'mesEspecifico' 
-                ? 'bg-blue-600 text-white' 
-                : 'bg-white text-gray-700 hover:bg-gray-50'
+                ? 'bg-[var(--primary)] text-white' 
+                : 'bg-[var(--surface-card)] text-[var(--text-secondary)] hover:bg-[var(--surface-secondary)]'
             }`}
           >
             Mês Específico
@@ -255,8 +252,8 @@ export default function RelatoriosPage() {
             onClick={() => setPeriodo('todos')}
             className={`px-4 py-2 text-sm font-medium ${
               periodo === 'todos' 
-                ? 'bg-blue-600 text-white' 
-                : 'bg-white text-gray-700 hover:bg-gray-50'
+                ? 'bg-[var(--primary)] text-white' 
+                : 'bg-[var(--surface-card)] text-[var(--text-secondary)] hover:bg-[var(--surface-secondary)]'
             } rounded-r-md`}
           >
             Todos
@@ -266,14 +263,14 @@ export default function RelatoriosPage() {
       
       {/* Tabs */}
       <div className="mb-6">
-        <div className="border-b border-gray-200">
+        <div className="border-b border-[var(--surface-border)]">
           <nav className="-mb-px flex space-x-8">
             <button
               onClick={() => setActiveTab('desempenho')}
               className={`py-2 px-1 border-b-2 ${
                 activeTab === 'desempenho'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  ? 'border-[var(--primary)] text-[var(--primary)]'
+                  : 'border-transparent text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--primary-light)]'
               } font-medium text-sm`}
             >
               Desempenho
@@ -282,8 +279,8 @@ export default function RelatoriosPage() {
               onClick={() => setActiveTab('distribuicao')}
               className={`py-2 px-1 border-b-2 ${
                 activeTab === 'distribuicao'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  ? 'border-[var(--primary)] text-[var(--primary)]'
+                  : 'border-transparent text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--primary-light)]'
               } font-medium text-sm`}
             >
               Distribuição
@@ -292,8 +289,8 @@ export default function RelatoriosPage() {
               onClick={() => setActiveTab('ranking')}
               className={`py-2 px-1 border-b-2 ${
                 activeTab === 'ranking'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  ? 'border-[var(--primary)] text-[var(--primary)]'
+                  : 'border-transparent text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--primary-light)]'
               } font-medium text-sm`}
             >
               Ranking
@@ -305,14 +302,14 @@ export default function RelatoriosPage() {
       {/* Estado de carregamento */}
       {isLoading && (
         <div className="text-center py-8">
-          <div className="animate-spin h-8 w-8 border-4 border-blue-500 border-t-transparent rounded-full mx-auto mb-4"></div>
-          <p>Carregando relatórios...</p>
+          <div className="animate-spin h-8 w-8 border-4 border-[var(--primary)] border-t-transparent rounded-full mx-auto mb-4"></div>
+          <p className="text-[var(--text-secondary)]">Carregando relatórios...</p>
         </div>
       )}
       
       {/* Mensagem de erro */}
       {error && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+        <div className="bg-[var(--error)]/10 border border-[var(--error)]/20 text-[var(--error)] px-4 py-3 rounded mb-4">
           {error}
         </div>
       )}
@@ -330,7 +327,7 @@ export default function RelatoriosPage() {
             <MetricCard 
               title="Resultado Total" 
               value={dashboardData.resultadoTotal}
-              color={dashboardData.resultadoTotal >= 0 ? 'text-green-600' : 'text-red-600'}
+              color={dashboardData.resultadoTotal >= 0 ? 'text-[var(--success)]' : 'text-[var(--error)]'}
               description="Soma dos resultados no período"
               isMoney={true}
             />
@@ -338,13 +335,13 @@ export default function RelatoriosPage() {
               title="Taxa de Acerto" 
               value={`${dashboardData.taxaAcerto}%`}
               description="Operações lucrativas"
-              color="text-blue-600"
+              color="text-[var(--primary)]"
             />
             <MetricCard 
               title="Média por Operação" 
               value={dashboardData.mediaResultado}
               description="Resultado médio por operação"
-              color={dashboardData.mediaResultado >= 0 ? 'text-green-600' : 'text-red-600'}
+              color={dashboardData.mediaResultado >= 0 ? 'text-[var(--success)]' : 'text-[var(--error)]'}
               isMoney={true}
             />
           </div>
@@ -715,14 +712,14 @@ export default function RelatoriosPage() {
               </>
             ) : (
               <div className="text-center py-8">
-                <p className="text-gray-500">Não há operações fechadas para o mês de {mesSelecionado}.</p>
+                <p className="text-[var(--text-secondary)]">Não há operações fechadas para o mês de {mesSelecionado}.</p>
               </div>
             )}
             
             <div className="mt-6 text-right">
               <button
                 onClick={fecharDetalhesMes}
-                className="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300"
+                className="px-4 py-2 bg-[var(--surface-secondary)] text-[var(--text-primary)] rounded hover:bg-[var(--surface-tertiary)]"
               >
                 Fechar
               </button>
@@ -730,6 +727,7 @@ export default function RelatoriosPage() {
           </div>
         </div>
       )}
+      </div>
     </div>
   );
 }

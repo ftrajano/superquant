@@ -39,15 +39,15 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-gray-100">
-      <div className="w-full max-w-md space-y-8 rounded-lg bg-white p-6 shadow-md">
+    <div className="flex min-h-screen flex-col items-center justify-center bg-surface-bg dark:bg-surface-bg">
+      <div className="w-full max-w-md space-y-8 rounded-lg bg-surface-card dark:bg-surface-card p-6 shadow-md border border-surface-border">
         <div className="text-center">
-          <h1 className="text-2xl font-bold">Bem-vindo(a) de volta</h1>
-          <p className="mt-2 text-gray-600">Entre com sua conta para continuar</p>
+          <h1 className="text-2xl font-bold text-text-primary dark:text-text-primary">Bem-vindo(a) de volta</h1>
+          <p className="mt-2 text-text-secondary dark:text-text-secondary">Entre com sua conta para continuar</p>
         </div>
 
         {error && (
-          <div className="rounded-md bg-red-50 p-4 text-sm text-red-700">
+          <div className="rounded-md bg-error/10 p-4 text-sm text-error dark:text-error">
             {error}
           </div>
         )}
@@ -55,7 +55,7 @@ export default function LoginPage() {
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="space-y-4">
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="email" className="block text-sm font-medium text-text-secondary dark:text-text-secondary">
                 Email
               </label>
               <input
@@ -65,12 +65,12 @@ export default function LoginPage() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+                className="mt-1 block w-full rounded-md border border-surface-border bg-surface-bg dark:bg-surface-bg dark:text-text-primary px-3 py-2 shadow-sm focus:border-primary focus:outline-none focus:ring-primary"
                 placeholder="seu@email.com"
               />
             </div>
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="password" className="block text-sm font-medium text-text-secondary dark:text-text-secondary">
                 Senha
               </label>
               <input
@@ -80,7 +80,7 @@ export default function LoginPage() {
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+                className="mt-1 block w-full rounded-md border border-surface-border bg-surface-bg dark:bg-surface-bg dark:text-text-primary px-3 py-2 shadow-sm focus:border-primary focus:outline-none focus:ring-primary"
                 placeholder="••••••••"
               />
             </div>
@@ -90,7 +90,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="group relative flex w-full justify-center rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:bg-blue-300"
+              className="btn btn-primary group relative flex w-full justify-center rounded-md px-4 py-2 text-sm font-medium disabled:opacity-50"
             >
               {loading ? 'Entrando...' : 'Entrar'}
             </button>
@@ -98,9 +98,9 @@ export default function LoginPage() {
         </form>
 
         <div className="mt-4 text-center text-sm">
-          <p>
+          <p className="text-text-secondary dark:text-text-secondary">
             Não tem uma conta?{' '}
-            <Link href="/cadastro" className="font-medium text-blue-600 hover:text-blue-500">
+            <Link href="/cadastro" className="font-medium text-primary hover:text-primary-hover">
               Cadastre-se
             </Link>
           </p>

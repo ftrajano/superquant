@@ -169,24 +169,24 @@ export default function MargemPage() {
   };
   
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-[var(--surface-bg)]">
       <NavBar />
       <div className="container mx-auto px-4 py-6">
         <div className="flex justify-between items-center mb-6">
           <div>
-            <h1 className="text-2xl font-bold text-blue-800">Controle de Margem</h1>
-            <p className="text-gray-600">Gerenciamento de margem na corretora</p>
+            <h1 className="text-2xl font-bold text-[var(--primary)]">Controle de Margem</h1>
+            <p className="text-[var(--text-secondary)]">Gerenciamento de margem na corretora</p>
           </div>
           <div className="flex space-x-2">
             <button 
               onClick={() => setShowForm(!showForm)}
-              className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+              className="bg-[var(--primary)] text-white dark:text-black font-bold px-4 py-2 rounded hover:bg-[var(--primary-hover)]"
             >
               {showForm ? 'Cancelar' : 'Atualizar Margem Total'}
             </button>
             <Link 
               href="/operacoes" 
-              className="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700"
+              className="bg-[var(--surface-tertiary)] text-[var(--text-primary)] px-4 py-2 rounded hover:bg-[var(--surface-tonal-hover)]"
             >
               Voltar para Operações
             </Link>
@@ -196,22 +196,22 @@ export default function MargemPage() {
         {/* Estado de carregamento */}
         {isLoading && (
           <div className="text-center py-8">
-            <div className="animate-spin h-8 w-8 border-4 border-blue-500 border-t-transparent rounded-full mx-auto mb-4"></div>
-            <p>Carregando dados de margem...</p>
+            <div className="animate-spin h-8 w-8 border-4 border-[var(--primary)] border-t-transparent rounded-full mx-auto mb-4"></div>
+            <p className="text-[var(--text-secondary)]">Carregando dados de margem...</p>
           </div>
         )}
         
         {/* Mensagem de erro */}
         {error && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+          <div className="bg-[var(--error)]/10 border border-[var(--error)]/20 text-[var(--error)] px-4 py-3 rounded mb-4">
             {error}
           </div>
         )}
         
         {/* Formulário para atualizar margem total */}
         {showForm && (
-          <div className="bg-white p-6 rounded-lg shadow-md mb-6">
-            <h2 className="text-xl font-semibold text-blue-800 mb-4">Atualizar Margem Total</h2>
+          <div className="bg-[var(--surface-card)] p-6 rounded-lg shadow-md mb-6">
+            <h2 className="text-xl font-semibold text-[var(--primary)] mb-4">Atualizar Margem Total</h2>
             <form onSubmit={handleSubmit}>
               <div className="mb-4">
                 <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="margemTotal">
@@ -259,7 +259,7 @@ export default function MargemPage() {
               <div className="flex items-center justify-between">
                 <button
                   type="submit"
-                  className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+                  className="bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white dark:text-black font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
                   disabled={isSubmitting || (Number(formData.margemTotal) < (margemData?.margemUtilizada || 0))}
                 >
                   {isSubmitting ? 'Processando...' : 'Atualizar Margem'}
@@ -267,7 +267,7 @@ export default function MargemPage() {
                 <button 
                   type="button"
                   onClick={() => setShowForm(false)}
-                  className="inline-block align-baseline font-bold text-sm text-blue-600 hover:text-blue-800"
+                  className="inline-block align-baseline font-bold text-sm text-[var(--primary)] hover:text-[var(--primary-hover)]"
                 >
                   Cancelar
                 </button>
@@ -278,9 +278,9 @@ export default function MargemPage() {
         
         {/* Primeira configuração de margem - mostrado apenas quando não há margem configurada */}
         {!isLoading && !error && margemData && margemData.margemTotal === 0 && (
-          <div className="bg-white p-6 rounded-lg shadow-md mb-6">
-            <h3 className="text-lg font-semibold text-blue-800 mb-4">Configuração Inicial de Margem</h3>
-            <p className="text-gray-600 mb-4">
+          <div className="bg-[var(--surface-card)] p-6 rounded-lg shadow-md mb-6">
+            <h3 className="text-lg font-semibold text-[var(--primary)] mb-4">Configuração Inicial de Margem</h3>
+            <p className="text-[var(--text-secondary)] mb-4">
               Você ainda não configurou sua margem inicial. Configure o valor total da sua margem disponível na corretora para começar.
             </p>
             
@@ -323,7 +323,7 @@ export default function MargemPage() {
               
               <button
                 type="submit"
-                className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+                className="bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white dark:text-black font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
                 disabled={isSubmitting}
               >
                 {isSubmitting ? 'Configurando...' : 'Configurar Margem Inicial'}
@@ -336,26 +336,26 @@ export default function MargemPage() {
         {!isLoading && !error && margemData && margemData.margemTotal > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
             {/* Margem Total */}
-            <div className="bg-white p-6 rounded-lg shadow-md">
-              <h3 className="text-lg font-semibold text-blue-800 mb-2">Margem Total</h3>
-              <p className="text-3xl font-bold text-gray-800">{formatarMoeda(margemData.margemTotal)}</p>
-              <p className="text-sm text-gray-500 mt-2">Valor total de margem depositada na corretora</p>
+            <div className="bg-[var(--surface-card)] p-6 rounded-lg shadow-md">
+              <h3 className="text-lg font-semibold text-[var(--primary)] mb-2">Margem Total</h3>
+              <p className="text-3xl font-bold text-[var(--text-primary)]">{formatarMoeda(margemData.margemTotal)}</p>
+              <p className="text-sm text-[var(--text-tertiary)] mt-2">Valor total de margem depositada na corretora</p>
             </div>
             
             {/* Margem Utilizada */}
-            <div className="bg-white p-6 rounded-lg shadow-md">
-              <h3 className="text-lg font-semibold text-blue-800 mb-2">Margem Utilizada</h3>
-              <p className="text-3xl font-bold text-orange-500">{formatarMoeda(margemData.margemUtilizada)}</p>
-              <p className="text-sm text-gray-500 mt-2">
+            <div className="bg-[var(--surface-card)] p-6 rounded-lg shadow-md">
+              <h3 className="text-lg font-semibold text-[var(--primary)] mb-2">Margem Utilizada</h3>
+              <p className="text-3xl font-bold text-[var(--warning)]">{formatarMoeda(margemData.margemUtilizada)}</p>
+              <p className="text-sm text-[var(--text-tertiary)] mt-2">
                 Valor de margem alocada para operações abertas
               </p>
             </div>
             
             {/* Margem Disponível */}
-            <div className="bg-white p-6 rounded-lg shadow-md">
-              <h3 className="text-lg font-semibold text-blue-800 mb-2">Margem Disponível</h3>
-              <p className="text-3xl font-bold text-green-600">{formatarMoeda(margemData.margemDisponivel)}</p>
-              <p className="text-sm text-gray-500 mt-2">Valor de margem disponível para novas operações</p>
+            <div className="bg-[var(--surface-card)] p-6 rounded-lg shadow-md">
+              <h3 className="text-lg font-semibold text-[var(--primary)] mb-2">Margem Disponível</h3>
+              <p className="text-3xl font-bold text-[var(--success)]">{formatarMoeda(margemData.margemDisponivel)}</p>
+              <p className="text-sm text-[var(--text-tertiary)] mt-2">Valor de margem disponível para novas operações</p>
             </div>
           </div>
         )}
@@ -364,19 +364,19 @@ export default function MargemPage() {
         
         {/* Gráfico de uso da margem - a ser implementado */}
         {!isLoading && !error && margemData && (
-          <div className="bg-white p-6 rounded-lg shadow-md mb-6">
-            <h3 className="text-lg font-semibold text-blue-800 mb-4">Uso da Margem</h3>
+          <div className="bg-[var(--surface-card)] p-6 rounded-lg shadow-md mb-6">
+            <h3 className="text-lg font-semibold text-[var(--primary)] mb-4">Uso da Margem</h3>
             
-            <div className="w-full bg-gray-200 rounded-full h-4 mb-2">
+            <div className="w-full bg-[var(--surface-secondary)] rounded-full h-4 mb-2">
               <div 
-                className="bg-blue-600 h-4 rounded-full" 
+                className="bg-[var(--primary)] h-4 rounded-full" 
                 style={{ 
                   width: `${margemData.margemTotal > 0 ? (margemData.margemUtilizada / margemData.margemTotal) * 100 : 0}%` 
                 }}
               ></div>
             </div>
             
-            <div className="flex justify-between text-sm text-gray-600">
+            <div className="flex justify-between text-sm text-[var(--text-secondary)]">
               <span>Utilizado: {margemData.margemTotal > 0 ? Math.round((margemData.margemUtilizada / margemData.margemTotal) * 100) : 0}%</span>
               <span>Disponível: {margemData.margemTotal > 0 ? Math.round((margemData.margemDisponivel / margemData.margemTotal) * 100) : 0}%</span>
             </div>
@@ -385,28 +385,28 @@ export default function MargemPage() {
         
         {/* Detalhamento da Utilização de Margem por Operação */}
         {!isLoading && !error && margemData && margemData.detalhesOperacoes && margemData.detalhesOperacoes.length > 0 && (
-          <div className="bg-white p-6 rounded-lg shadow-md">
+          <div className="bg-[var(--surface-card)] p-6 rounded-lg shadow-md">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold text-blue-800">Operações Utilizando Margem</h3>
+              <h3 className="text-lg font-semibold text-[var(--primary)]">Operações Utilizando Margem</h3>
             </div>
             
             <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
+              <table className="min-w-full divide-y divide-[var(--surface-border)]">
+                <thead className="bg-[var(--surface-secondary)]">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ticker</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Direção</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantidade</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Margem Utilizada</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">Ticker</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">Tipo</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">Direção</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">Status</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">Quantidade</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">Data</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">Margem Utilizada</th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+                <tbody className="bg-[var(--surface-card)] divide-y divide-[var(--surface-border)]">
                   {margemData.detalhesOperacoes.map((op) => (
-                    <tr key={op.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap font-medium text-blue-600">
+                    <tr key={op.id} className="hover:bg-[var(--surface-secondary)] dark:hover:bg-[var(--surface-tertiary)]">
+                      <td className="px-6 py-4 whitespace-nowrap font-medium text-[var(--primary)]">
                         {op.ticker}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
@@ -436,24 +436,24 @@ export default function MargemPage() {
                           {op.status}
                         </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-[var(--text-secondary)]">
                         {op.status === 'Parcialmente Fechada' 
                           ? `${op.quantidadeRestante}/${op.quantidade} restantes` 
                           : op.quantidade}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-[var(--text-secondary)]">
                         {formatarData(op.dataAbertura)}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-orange-500">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-[var(--warning)]">
                         {formatarMoeda(op.valorMargem)}
                       </td>
                     </tr>
                   ))}
-                  <tr className="bg-gray-50">
-                    <td colSpan="6" className="px-6 py-4 whitespace-nowrap text-right font-bold">
+                  <tr className="bg-[var(--surface-secondary)]">
+                    <td colSpan="6" className="px-6 py-4 whitespace-nowrap text-right font-bold text-[var(--text-primary)]">
                       Total de Margem Utilizada:
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-orange-500">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-[var(--warning)]">
                       {formatarMoeda(margemData.margemUtilizada)}
                     </td>
                   </tr>
@@ -465,12 +465,12 @@ export default function MargemPage() {
         
         {/* Estado sem operações */}
         {!isLoading && !error && margemData && (!margemData.detalhesOperacoes || margemData.detalhesOperacoes.length === 0) && (
-          <div className="bg-white p-6 rounded-lg shadow-md text-center">
-            <h3 className="text-lg font-semibold text-blue-800 mb-2">Operações com Margem</h3>
-            <p className="text-gray-500 py-4">Nenhuma operação utilizando margem no momento.</p>
+          <div className="bg-[var(--surface-card)] p-6 rounded-lg shadow-md text-center">
+            <h3 className="text-lg font-semibold text-[var(--primary)] mb-2">Operações com Margem</h3>
+            <p className="text-[var(--text-secondary)] py-4">Nenhuma operação utilizando margem no momento.</p>
             <Link 
               href="/operacoes/nova"
-              className="mt-2 inline-block bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+              className="mt-2 inline-block bg-[var(--primary)] text-white dark:text-black font-bold px-4 py-2 rounded hover:bg-[var(--primary-hover)]"
             >
               Criar Nova Operação
             </Link>

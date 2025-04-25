@@ -14,8 +14,8 @@ import { ptBR } from 'date-fns/locale';
 // Componente de carregamento para o Suspense
 const LoadingUI = () => (
   <div className="text-center py-8">
-    <div className="animate-spin h-8 w-8 border-4 border-blue-500 border-t-transparent rounded-full mx-auto mb-4"></div>
-    <p>Carregando...</p>
+    <div className="animate-spin h-8 w-8 border-4 border-[var(--primary)] border-t-transparent rounded-full mx-auto mb-4"></div>
+    <p className="text-[var(--text-secondary)]">Carregando...</p>
   </div>
 );
 
@@ -149,15 +149,15 @@ const CopyTradingContent = () => {
   };
   
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-[var(--surface-bg)]">
       <NavBar />
       <div className="container mx-auto px-4 py-6">
       
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-green-800">CopyTrading</h1>
-          <p className="text-gray-600">Operações dos usuários modelo para você se inspirar</p>
-          <div className="mt-2 text-sm text-gray-500">
+          <h1 className="text-2xl font-bold text-[var(--primary)]">CopyTrading</h1>
+          <p className="text-[var(--text-secondary)]">Operações dos usuários modelo para você se inspirar</p>
+          <div className="mt-2 text-sm text-[var(--text-tertiary)]">
             Todas as operações realizadas pelos usuários com papel "modelo" aparecem automaticamente aqui.
           </div>
         </div>
@@ -184,8 +184,8 @@ const CopyTradingContent = () => {
             onClick={() => setStatusFiltro('Todos')}
             className={`px-4 py-2 text-sm font-medium rounded-l-md ${
               statusFiltro === 'Todos' 
-                ? 'bg-blue-600 text-white' 
-                : 'bg-white text-gray-700 hover:bg-gray-50'
+                ? 'bg-[var(--primary)] text-white dark:text-[var(--color-dark-900)]' 
+                : 'bg-[var(--surface-card)] text-[var(--text-secondary)] hover:bg-[var(--surface-secondary)]'
             }`}
           >
             Todas
@@ -195,8 +195,8 @@ const CopyTradingContent = () => {
             onClick={() => setStatusFiltro('Aberta')}
             className={`px-4 py-2 text-sm font-medium ${
               statusFiltro === 'Aberta' 
-                ? 'bg-blue-600 text-white' 
-                : 'bg-white text-gray-700 hover:bg-gray-50'
+                ? 'bg-[var(--primary)] text-white dark:text-[var(--color-dark-900)]' 
+                : 'bg-[var(--surface-card)] text-[var(--text-secondary)] hover:bg-[var(--surface-secondary)]'
             }`}
           >
             Abertas
@@ -206,8 +206,8 @@ const CopyTradingContent = () => {
             onClick={() => setStatusFiltro('Fechada')}
             className={`px-4 py-2 text-sm font-medium rounded-r-md ${
               statusFiltro === 'Fechada' 
-                ? 'bg-blue-600 text-white' 
-                : 'bg-white text-gray-700 hover:bg-gray-50'
+                ? 'bg-[var(--primary)] text-white dark:text-[var(--color-dark-900)]' 
+                : 'bg-[var(--surface-card)] text-[var(--text-secondary)] hover:bg-[var(--surface-secondary)]'
             }`}
           >
             Fechadas
@@ -221,14 +221,14 @@ const CopyTradingContent = () => {
               <button
                 type="button"
                 onClick={() => setMostraResumo(true)}
-                className="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700"
+                className="bg-[var(--primary)] text-white dark:text-[var(--color-dark-900)] px-3 py-1 rounded text-sm hover:bg-[var(--primary-hover)]"
               >
                 Ver Resumo ({cestalSelecionada.length})
               </button>
               <button
                 type="button"
                 onClick={limparCesta}
-                className="bg-gray-600 text-white px-3 py-1 rounded text-sm hover:bg-gray-700"
+                className="bg-[var(--surface-secondary)] text-[var(--text-primary)] px-3 py-1 rounded text-sm hover:bg-[var(--surface-tertiary)]"
               >
                 Limpar Seleção
               </button>
@@ -239,9 +239,9 @@ const CopyTradingContent = () => {
       
       {/* Modal de Resumo da Cesta */}
       {mostraResumo && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-md">
-            <h2 className="text-xl font-semibold text-blue-800 mb-4">Resumo da Cesta</h2>
+        <div className="fixed inset-0 bg-[var(--color-dark-900)] bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-[var(--surface-card)] p-6 rounded-lg shadow-xl w-full max-w-md">
+            <h2 className="text-xl font-semibold text-[var(--primary)] mb-4">Resumo da Cesta</h2>
             <div className="mb-4">
               <p className="text-lg font-bold mb-2">
                 Operações selecionadas: {cestalSelecionada.length}
@@ -250,9 +250,9 @@ const CopyTradingContent = () => {
                 Saldo total: 
                 <span className={
                   calcularSaldoCesta() > 0 
-                    ? ' text-green-600' 
+                    ? ' text-[var(--success)]' 
                     : calcularSaldoCesta() < 0 
-                      ? ' text-red-600' 
+                      ? ' text-[var(--error)]' 
                       : ''
                 }>
                   {' '}{formatarMoeda(calcularSaldoCesta())}
@@ -261,15 +261,15 @@ const CopyTradingContent = () => {
             </div>
             
             <div className="max-h-60 overflow-y-auto mb-4">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
+              <table className="min-w-full divide-y divide-[var(--surface-border)]">
+                <thead className="bg-[var(--surface-secondary)]">
                   <tr>
-                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500">Ticker</th>
-                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500">Tipo</th>
-                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500">Resultado</th>
+                    <th className="px-3 py-2 text-left text-xs font-medium text-[var(--text-secondary)]">Ticker</th>
+                    <th className="px-3 py-2 text-left text-xs font-medium text-[var(--text-secondary)]">Tipo</th>
+                    <th className="px-3 py-2 text-left text-xs font-medium text-[var(--text-secondary)]">Resultado</th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+                <tbody className="bg-[var(--surface-card)] divide-y divide-[var(--surface-border)]">
                   {operacoes
                     .filter(op => cestalSelecionada.includes(op._id))
                     .map(op => (
@@ -277,17 +277,17 @@ const CopyTradingContent = () => {
                         <td className="px-3 py-2 text-sm">
                           {op.ticker || (op.nome ? op.nome : 'N/A')}
                           {op.idVisual && (
-                            <div className="text-xs text-gray-500">{op.idVisual}</div>
+                            <div className="text-xs text-[var(--text-tertiary)]">{op.idVisual}</div>
                           )}
                         </td>
                         <td className="px-3 py-2 text-sm">{op.tipo} {op.direcao === 'COMPRA' ? '↑' : '↓'}</td>
                         <td className="px-3 py-2 text-sm font-medium">
                           <span className={
                             op.resultadoTotal > 0 
-                              ? 'text-green-600' 
+                              ? 'text-[var(--success)]' 
                               : op.resultadoTotal < 0 
-                                ? 'text-red-600' 
-                                : 'text-gray-500'
+                                ? 'text-[var(--error)]' 
+                                : 'text-[var(--text-tertiary)]'
                           }>
                             {formatarMoeda(op.resultadoTotal)}
                           </span>
@@ -303,7 +303,7 @@ const CopyTradingContent = () => {
               <button
                 type="button"
                 onClick={() => setMostraResumo(false)}
-                className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded"
+                className="bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white dark:text-[var(--color-dark-900)] font-medium py-2 px-4 rounded"
               >
                 Fechar
               </button>
@@ -315,14 +315,14 @@ const CopyTradingContent = () => {
       {/* Estado de carregamento */}
       {isLoading && (
         <div className="text-center py-8">
-          <div className="animate-spin h-8 w-8 border-4 border-blue-500 border-t-transparent rounded-full mx-auto mb-4"></div>
-          <p>Carregando operações...</p>
+          <div className="animate-spin h-8 w-8 border-4 border-[var(--primary)] border-t-transparent rounded-full mx-auto mb-4"></div>
+          <p className="text-[var(--text-secondary)]">Carregando operações...</p>
         </div>
       )}
       
       {/* Mensagem de erro */}
       {error && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+        <div className="bg-[var(--error)]/10 border border-[var(--error)]/20 text-[var(--error)] px-4 py-3 rounded mb-4">
           {error}
         </div>
       )}
@@ -331,38 +331,40 @@ const CopyTradingContent = () => {
       {!isLoading && !error && (
         <>
           {operacoes.length === 0 ? (
-            <div className="text-center py-8 bg-gray-50 rounded-lg">
-              <p className="text-gray-500">Nenhuma operação de copytrading encontrada para {mesAtivo}.</p>
+            <div className="text-center py-8 bg-[var(--surface-secondary)] rounded-lg">
+              <p className="text-[var(--text-secondary)]">Nenhuma operação de copytrading encontrada para {mesAtivo}.</p>
             </div>
           ) : (
-            <div className="bg-white rounded-lg shadow overflow-hidden">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
+            <div className="bg-[var(--surface-card)] rounded-lg shadow overflow-hidden">
+              <table className="min-w-full divide-y divide-[var(--surface-border)]">
+                <thead className="bg-[var(--surface-secondary)]">
                   <tr>
-                    <th className="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-3 py-3 text-center text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
                       Sel
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ticker</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Abertura</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Direção</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Strike</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Preço</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Resultado</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Detalhes</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">Ticker</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">Abertura</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">Tipo</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">Direção</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">Strike</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">Preço</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">Qtde</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">Valor Total</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">Status</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">Resultado</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">Detalhes</th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+                <tbody className="bg-[var(--surface-card)] divide-y divide-[var(--surface-border)]">
                   {operacoes.map(op => (
                     <tr 
                       key={op._id} 
-                      className={`hover:bg-gray-50 ${
+                      className={`hover:bg-[var(--surface-secondary)] dark:hover:bg-[var(--surface-tertiary)] ${
                         op.status === 'Fechada' 
                           ? op.resultadoTotal > 0 
-                            ? 'bg-green-50' 
+                            ? 'bg-[var(--success)]/10 dark:bg-[var(--success)]/20' 
                             : op.resultadoTotal < 0 
-                              ? 'bg-red-50' 
+                              ? 'bg-[var(--error)]/10 dark:bg-[var(--error)]/20' 
                               : '' 
                           : ''
                       }`}
@@ -372,17 +374,17 @@ const CopyTradingContent = () => {
                           type="checkbox"
                           checked={cestalSelecionada.includes(op._id)}
                           onChange={() => handleToggleSelecao(op._id)}
-                          className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                          className="h-4 w-4 text-[var(--primary)] border-[var(--surface-border)] rounded focus:ring-[var(--primary)]"
                         />
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-blue-600 hover:text-blue-800 font-medium">
+                        <div className="text-[var(--primary)] hover:text-[var(--primary-hover)] font-medium">
                           {op.ticker || (op.nome ? op.nome : 'N/A')}
                         </div>
-                        <div className="flex flex-col text-xs text-gray-500 mt-1">
+                        <div className="flex flex-col text-xs text-[var(--text-tertiary)] mt-1">
                           {op.idVisual && <div>{op.idVisual}</div>}
                           {op.userId && op.userId.name && (
-                            <div className="text-green-600 font-medium">
+                            <div className="text-[var(--success)] font-medium">
                               Modelo: {op.userId.name}
                             </div>
                           )}
@@ -390,7 +392,7 @@ const CopyTradingContent = () => {
                       </td>
                       
                       <td className="px-6 py-4 whitespace-nowrap text-sm">
-                        <div className="text-gray-600">
+                        <div className="text-[var(--text-secondary)]">
                           <div>{formatarData(op.dataAbertura)}</div>
                           {op.status === 'Fechada' && op.dataFechamento && (
                             <div className="mt-1 text-xs">
@@ -402,8 +404,8 @@ const CopyTradingContent = () => {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-md text-sm font-medium ${
                           op.tipo === 'CALL' 
-                            ? 'bg-blue-100 text-blue-800' 
-                            : 'bg-purple-100 text-purple-800'
+                            ? 'bg-[var(--primary)]/10 text-[var(--primary)]' 
+                            : 'bg-[var(--surface-secondary)] dark:bg-[var(--surface-tertiary)] text-[var(--text-secondary)] dark:text-[var(--text-primary)]'
                         }`}>
                           {op.tipo}
                         </span>
@@ -411,8 +413,8 @@ const CopyTradingContent = () => {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-md text-sm font-medium ${
                           op.direcao === 'COMPRA' 
-                            ? 'bg-green-100 text-green-800' 
-                            : 'bg-red-100 text-red-800'
+                            ? 'bg-[var(--success)]/10 text-[var(--success)]' 
+                            : 'bg-[var(--error)]/10 text-[var(--error)]'
                         }`}>
                           {op.direcao}
                         </span>
@@ -424,11 +426,17 @@ const CopyTradingContent = () => {
                         <div>
                           {formatarMoeda(op.preco)}
                           {op.status === 'Fechada' && op.precoFechamento && (
-                            <div className="mt-1 text-xs text-gray-500">
+                            <div className="mt-1 text-xs text-[var(--text-tertiary)]">
                               Fechamento: {formatarMoeda(op.precoFechamento)}
                             </div>
                           )}
                         </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm">
+                        {op.quantidade || '1'}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm">
+                        {formatarMoeda((op.preco || 0) * (op.quantidade || 1))}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <StatusBadge status={op.status} />
@@ -436,16 +444,16 @@ const CopyTradingContent = () => {
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <span className={
                           op.resultadoTotal > 0 
-                            ? 'text-green-600 font-semibold' 
+                            ? 'text-[var(--success)] font-semibold' 
                             : op.resultadoTotal < 0 
-                              ? 'text-red-600 font-semibold' 
-                              : 'text-gray-500'
+                              ? 'text-[var(--error)] font-semibold' 
+                              : 'text-[var(--text-tertiary)]'
                         }>
                           {formatarMoeda(op.resultadoTotal)}
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm">
-                        <Link href={`/operacoes/${op._id}`} className="text-blue-600 hover:text-blue-800">
+                        <Link href={`/operacoes/${op._id}`} className="text-[var(--primary)] hover:text-[var(--primary-hover)]">
                           Detalhes
                         </Link>
                       </td>

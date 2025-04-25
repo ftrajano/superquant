@@ -3,14 +3,17 @@
 import { useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import NavBar from '@/components/NavBar';
+import { Card, Button, Input, Select, Badge } from '@/components/ui';
 
 // Componente de carregamento para o Suspense
 const LoadingUI = () => (
   <div className="text-center py-8">
-    <div className="animate-spin h-8 w-8 border-4 border-blue-500 border-t-transparent rounded-full mx-auto mb-4"></div>
+    <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4"></div>
     <p>Carregando...</p>
   </div>
 );
+
 
 // Componente principal que usa useSearchParams
 const NovaOperacaoContent = () => {
@@ -35,14 +38,28 @@ const NovaOperacaoContent = () => {
   const meses = [
     'janeiro', 'fevereiro', 'marco', 'abril', 'maio', 'junho',
     'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'
-  ];
+  ].map(mes => ({
+    value: mes,
+    label: mes.charAt(0).toUpperCase() + mes.slice(1)
+  }));
   
   // Gerar anos para seleção (2 anos passados até 5 anos futuros)
   const currentYear = new Date().getFullYear();
   const anos = [];
   for (let ano = currentYear - 2; ano <= currentYear + 5; ano++) {
-    anos.push(ano.toString());
+    anos.push({ value: ano.toString(), label: ano.toString() });
   }
+  
+  // Opções para tipo e direção
+  const tipoOptions = [
+    { value: 'CALL', label: 'CALL' },
+    { value: 'PUT', label: 'PUT' }
+  ];
+  
+  const direcaoOptions = [
+    { value: 'COMPRA', label: 'COMPRA' },
+    { value: 'VENDA', label: 'VENDA' }
+  ];
   
   // Atualizar o estado do formulário
   const handleChange = (e) => {
@@ -109,190 +126,151 @@ const NovaOperacaoContent = () => {
   };
   
   return (
-    <div className="container mx-auto px-4 py-6">
-      <div className="flex items-center mb-6">
-        <Link 
-          href="/operacoes" 
-          className="text-blue-600 hover:text-blue-800 mr-2"
-        >
-          ← Voltar
-        </Link>
-        <h1 className="text-2xl font-bold text-blue-800">Nova Operação</h1>
-      </div>
-      
-      {/* Mensagem de erro */}
-      {error && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-          {error}
+    <div className="min-h-screen bg-theme-background">
+      <NavBar />
+      <div className="container mx-auto px-4 py-6">
+        <div className="flex items-center mb-6">
+          <Button 
+            href="/operacoes" 
+            variant="outline"
+            className="mr-4"
+          >
+            ← Voltar
+          </Button>
+          <h1 className="text-2xl font-bold text-text-primary">Nova Operação</h1>
         </div>
-      )}
-      
-      {/* Formulário */}
-      <div className="bg-white p-6 rounded-lg shadow-md">
-        <form onSubmit={handleSubmit}>
+        
+        {/* Mensagem de erro */}
+        {error && (
           <div className="mb-4">
-            <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="nome">
-              Ticker
-            </label>
-            <input
+            <Badge variant="error" className="px-4 py-2 text-sm">
+              {error}
+            </Badge>
+          </div>
+        )}
+        
+        {/* Formulário */}
+        <Card>
+          <form onSubmit={handleSubmit}>
+            <Input
               id="nome"
               name="nome"
               type="text"
-              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+              label="Ticker"
               placeholder="Ex: PETR4"
               value={formData.nome}
               onChange={handleChange}
               required
             />
-          </div>
-          
-          <div className="grid grid-cols-2 gap-4 mb-4">
-            <div>
-              <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="mesReferencia">
-                Mês de Referência
-              </label>
-              <select
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+              <Select
                 id="mesReferencia"
                 name="mesReferencia"
-                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                label="Mês de Referência"
                 value={formData.mesReferencia}
                 onChange={handleChange}
+                options={meses}
                 required
-              >
-                {meses.map(mes => (
-                  <option key={mes} value={mes} className="capitalize">
-                    {mes.charAt(0).toUpperCase() + mes.slice(1)}
-                  </option>
-                ))}
-              </select>
-            </div>
-            
-            <div>
-              <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="anoReferencia">
-                Ano de Referência
-              </label>
-              <select
+              />
+              
+              <Select
                 id="anoReferencia"
                 name="anoReferencia"
-                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                label="Ano de Referência"
                 value={formData.anoReferencia}
                 onChange={handleChange}
+                options={anos}
                 required
-              >
-                {anos.map(ano => (
-                  <option key={ano} value={ano}>
-                    {ano}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-          
-          <div className="grid grid-cols-2 gap-4 mb-4">
-            <div>
-              <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="tipo">
-                Tipo
-              </label>
-              <select
-                id="tipo"
-                name="tipo"
-                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                value={formData.tipo}
-                onChange={handleChange}
-                required
-              >
-                <option value="CALL">CALL</option>
-                <option value="PUT">PUT</option>
-              </select>
+              />
             </div>
             
-            <div>
-              <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="direcao">
-                Direção
-              </label>
-              <select
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+              <Select
+                id="tipo"
+                name="tipo"
+                label="Tipo"
+                value={formData.tipo}
+                onChange={handleChange}
+                options={tipoOptions}
+                required
+              />
+              
+              <Select
                 id="direcao"
                 name="direcao"
-                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                label="Direção"
                 value={formData.direcao}
                 onChange={handleChange}
+                options={direcaoOptions}
                 required
-              >
-                <option value="COMPRA">COMPRA</option>
-                <option value="VENDA">VENDA</option>
-              </select>
+              />
             </div>
-          </div>
-          
-          <div className="grid grid-cols-2 gap-4 mb-4">
-            <div>
-              <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="strike">
-                Strike
-              </label>
-              <input
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+              <Input
                 id="strike"
                 name="strike"
                 type="number"
-                step="0.01"
-                min="0"
-                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                label="Strike"
                 placeholder="Ex: 35.50"
                 value={formData.strike}
                 onChange={handleChange}
                 required
+                step="0.01"
+                min="0"
               />
-            </div>
-            
-            <div>
-              <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="preco">
-                Preço
-              </label>
-              <input
+              
+              <Input
                 id="preco"
                 name="preco"
                 type="number"
-                step="0.01"
-                min="0"
-                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                label="Preço"
                 placeholder="Ex: 1.25"
                 value={formData.preco}
                 onChange={handleChange}
                 required
+                step="0.01"
+                min="0"
               />
             </div>
-          </div>
-          
-          <div className="mb-6">
-            <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="observacoes">
-              Observações (opcional)
-            </label>
-            <textarea
-              id="observacoes"
-              name="observacoes"
-              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-              rows="3"
-              placeholder="Informações adicionais sobre a operação..."
-              value={formData.observacoes}
-              onChange={handleChange}
-            ></textarea>
-          </div>
-          
-          <div className="flex items-center justify-between">
-            <button
-              type="submit"
-              className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-              disabled={isLoading}
-            >
-              {isLoading ? 'Criando...' : 'Criar Operação'}
-            </button>
-            <Link 
-              href="/operacoes" 
-              className="inline-block align-baseline font-bold text-sm text-blue-600 hover:text-blue-800"
-            >
-              Cancelar
-            </Link>
-          </div>
-        </form>
+            
+            <div className="mb-6">
+              <label htmlFor="observacoes" className="block text-text-secondary font-medium text-sm mb-1">
+                Observações (opcional)
+              </label>
+              <textarea
+                id="observacoes"
+                name="observacoes"
+                className="w-full px-3 py-2 rounded-md bg-surface-bg border border-surface-border text-text-primary
+                          focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary
+                          transition duration-200"
+                rows="3"
+                placeholder="Informações adicionais sobre a operação..."
+                value={formData.observacoes}
+                onChange={handleChange}
+              ></textarea>
+            </div>
+            
+            <div className="flex items-center justify-between">
+              <Button
+                type="submit"
+                variant="primary"
+                disabled={isLoading}
+                isLoading={isLoading}
+              >
+                Criar Operação
+              </Button>
+              
+              <Button 
+                href="/operacoes" 
+                variant="secondary"
+              >
+                Cancelar
+              </Button>
+            </div>
+          </form>
+        </Card>
       </div>
     </div>
   );
