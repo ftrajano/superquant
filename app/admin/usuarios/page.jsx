@@ -90,6 +90,39 @@ export default function AdminUsuariosPage() {
       setError(err.message);
     }
   };
+  
+  // Remover usuário
+  const handleDeleteUser = async (userId, userName) => {
+    try {
+      if (!confirm(`Tem certeza que deseja remover o usuário ${userName}? ATENÇÃO: Todas as operações associadas a este usuário também serão removidas permanentemente. Esta ação não pode ser desfeita.`)) {
+        return;
+      }
+      
+      setSuccess(null);
+      setError(null);
+      
+      console.log(`Tentando remover usuário ${userId}`);
+      const response = await fetch(`/api/admin/usuarios/${userId}`, {
+        method: 'DELETE',
+      });
+      
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Erro ao remover usuário');
+      }
+      
+      const data = await response.json();
+      console.log('Dados da resposta:', data);
+      
+      // Remover o usuário da lista local
+      setUsers(users.filter(user => user._id.toString() !== userId));
+      
+      setSuccess('Usuário removido com sucesso!');
+      setTimeout(() => setSuccess(null), 3000);
+    } catch (err) {
+      setError(err.message);
+    }
+  };
 
   if (status === 'loading' || (status === 'authenticated' && session?.user?.role !== 'admin')) {
     return (
@@ -190,7 +223,7 @@ export default function AdminUsuariosPage() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm">
                         {user.role !== 'admin' && (
-                          <div className="flex space-x-2">
+                          <div className="flex flex-col space-y-2">
                             {user.role === 'user' ? (
                               <button
                                 onClick={() => {
@@ -198,6 +231,7 @@ export default function AdminUsuariosPage() {
                                   handleRoleChange(user._id.toString(), 'modelo');
                                 }}
                                 style={{ color: theme === 'dark' ? '#49db0f' : 'var(--success)' }}
+                                className="text-left"
                               >
                                 Promover para Modelo
                               </button>
@@ -208,10 +242,19 @@ export default function AdminUsuariosPage() {
                                   handleRoleChange(user._id.toString(), 'user');
                                 }}
                                 style={{ color: theme === 'dark' ? '#49db0f' : 'var(--info)' }}
+                                className="text-left"
                               >
                                 Remover Modelo
                               </button>
                             )}
+                            
+                            <button
+                              onClick={() => handleDeleteUser(user._id.toString(), user.name)}
+                              style={{ color: theme === 'dark' ? '#fecaca' : '#dc2626' }}
+                              className="text-left"
+                            >
+                              Remover Usuário
+                            </button>
                           </div>
                         )}
                       </td>

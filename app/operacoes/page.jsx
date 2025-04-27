@@ -10,6 +10,7 @@ import YearSelector from '@/components/ui/YearSelector.jsx';
 import StatusBadge from '@/components/ui/StatusBadge.jsx';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { useTheme } from '@/components/ThemeProvider';
 
 // Componente de carregamento para o Suspense
 const LoadingUI = () => (
@@ -24,6 +25,7 @@ const OperacoesContent = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const mesParam = searchParams.get('mes');
+  const { theme } = useTheme();
   
   // Lista de meses válidos para normalização
   const mesesValidos = {
@@ -198,6 +200,18 @@ const OperacoesContent = () => {
   const calcularSaldoCesta = () => {
     const operacoesDaCesta = operacoes.filter(op => cestalSelecionada.includes(op._id));
     return operacoesDaCesta.reduce((total, op) => total + (op.resultadoTotal || 0), 0);
+  };
+  
+  const calcularSaldoMesAtual = () => {
+    // Filtra apenas operações fechadas deste mês e ano
+    const operacoesFechadas = operacoes.filter(op => 
+      op.status === 'Fechada' && 
+      op.mesReferencia?.toLowerCase() === mesAtivo?.toLowerCase() && 
+      (op.anoReferencia?.toString() === anoAtivo?.toString())
+    );
+    
+    // Calcula o saldo total das operações fechadas
+    return operacoesFechadas.reduce((total, op) => total + (op.resultadoTotal || 0), 0);
   };
   
   const limparCesta = () => {
@@ -562,40 +576,76 @@ const OperacoesContent = () => {
       
       {/* Filtros e Ações */}
       <div className="mb-4 flex flex-wrap justify-between gap-4">
-        <div className="inline-flex shadow-sm rounded-md">
-          <button
-            type="button"
-            onClick={() => setStatusFiltro('Todos')}
-            className={`px-4 py-2 text-sm font-medium rounded-l-md ${
-              statusFiltro === 'Todos' 
-                ? 'bg-[var(--primary)] text-white' 
-                : 'bg-[var(--surface-card)] text-[var(--text-secondary)] hover:bg-[var(--surface-secondary)]'
-            }`}
-          >
-            Todas
-          </button>
-          <button
-            type="button"
-            onClick={() => setStatusFiltro('Aberta')}
-            className={`px-4 py-2 text-sm font-medium ${
-              statusFiltro === 'Aberta' 
-                ? 'bg-[var(--primary)] text-white' 
-                : 'bg-[var(--surface-card)] text-[var(--text-secondary)] hover:bg-[var(--surface-secondary)]'
-            }`}
-          >
-            Abertas
-          </button>
-          <button
-            type="button"
-            onClick={() => setStatusFiltro('Fechada')}
-            className={`px-4 py-2 text-sm font-medium rounded-r-md ${
-              statusFiltro === 'Fechada' 
-                ? 'bg-[var(--primary)] text-white' 
-                : 'bg-[var(--surface-card)] text-[var(--text-secondary)] hover:bg-[var(--surface-secondary)]'
-            }`}
-          >
-            Fechadas
-          </button>
+        <div className="flex items-center space-x-4">
+          <div className="inline-flex shadow-sm rounded-md">
+            <button
+              type="button"
+              onClick={() => setStatusFiltro('Todos')}
+              className={`px-4 py-2 text-sm font-medium rounded-l-md ${
+                statusFiltro === 'Todos' 
+                  ? 'bg-[var(--primary)] text-white' 
+                  : 'bg-[var(--surface-card)] text-[var(--text-secondary)] hover:bg-[var(--surface-secondary)]'
+              }`}
+            >
+              Todas
+            </button>
+            <button
+              type="button"
+              onClick={() => setStatusFiltro('Aberta')}
+              className={`px-4 py-2 text-sm font-medium ${
+                statusFiltro === 'Aberta' 
+                  ? 'bg-[var(--primary)] text-white' 
+                  : 'bg-[var(--surface-card)] text-[var(--text-secondary)] hover:bg-[var(--surface-secondary)]'
+              }`}
+            >
+              Abertas
+            </button>
+            <button
+              type="button"
+              onClick={() => setStatusFiltro('Fechada')}
+              className={`px-4 py-2 text-sm font-medium rounded-r-md ${
+                statusFiltro === 'Fechada' 
+                  ? 'bg-[var(--primary)] text-white' 
+                  : 'bg-[var(--surface-card)] text-[var(--text-secondary)] hover:bg-[var(--surface-secondary)]'
+              }`}
+            >
+              Fechadas
+            </button>
+          </div>
+          
+          {/* Saldo do mês atual */}
+          <div className="flex items-center px-3 py-2 rounded shadow-sm bg-[var(--surface-card)]">
+            <div className="mr-2 text-xs text-[var(--text-secondary)]">Saldo do mês:</div>
+            <div 
+              className="font-semibold text-sm"
+              style={{
+                color: calcularSaldoMesAtual() > 0 
+                  ? theme === 'dark' ? '#00cc00' : '#16a34a' 
+                  : calcularSaldoMesAtual() < 0 
+                    ? '#dc2626' 
+                    : '#6b7280'
+              }}
+            >
+              {formatarMoeda(calcularSaldoMesAtual())}
+            </div>
+          </div>
+          
+          {/* Saldo da seleção */}
+          <div className="flex items-center px-3 py-2 rounded shadow-sm bg-[var(--surface-card)]">
+            <div className="mr-2 text-xs text-[var(--text-secondary)]">Saldo seleção:</div>
+            <div 
+              className="font-semibold text-sm"
+              style={{
+                color: calcularSaldoCesta() > 0 
+                  ? theme === 'dark' ? '#00cc00' : '#16a34a' 
+                  : calcularSaldoCesta() < 0 
+                    ? '#dc2626' 
+                    : '#6b7280'
+              }}
+            >
+              {formatarMoeda(calcularSaldoCesta())}
+            </div>
+          </div>
         </div>
         
         {/* Ações da Cesta */}
@@ -920,12 +970,21 @@ const OperacoesContent = () => {
                       className={`hover:bg-[var(--surface-secondary)] dark:hover:bg-[var(--surface-tertiary)] ${
                         op.status === 'Fechada' 
                           ? op.resultadoTotal > 0 
-                            ? 'bg-green-50 dark:bg-green-900/30' 
+                            ? 'bg-green-50 dark:!bg-[#062810]' 
                             : op.resultadoTotal < 0 
-                              ? 'bg-red-50 dark:bg-red-900/30' 
+                              ? 'bg-red-50 dark:!bg-[#280808]' 
                               : '' 
                           : ''
                       }`}
+                      style={op.status === 'Fechada' ? {
+                        backgroundColor: theme === 'dark' 
+                          ? op.resultadoTotal > 0 
+                            ? '#062810' 
+                            : op.resultadoTotal < 0 
+                              ? '#280808' 
+                              : '' 
+                          : ''
+                      } : {}}
                     >
                       <td className="px-2 py-3 whitespace-nowrap text-center">
                         <input
@@ -992,10 +1051,16 @@ const OperacoesContent = () => {
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap text-sm">
                         <div>
-                          {formatarMoeda(op.valorTotal || op.preco * (op.quantidade || 1))}
+                          {formatarMoeda(
+                            (op.direcao === 'COMPRA' ? -1 : 1) * 
+                            (op.valorTotal || op.preco * (op.quantidade || 1))
+                          )}
                           {op.status === 'Fechada' && op.precoFechamento && (
                             <div className="text-xs text-gray-500">
-                              F: {formatarMoeda(op.valorTotalFechamento || op.precoFechamento * (op.quantidade || 1))}
+                              F: {formatarMoeda(
+                                (op.direcao === 'VENDA' ? -1 : 1) * 
+                                (op.valorTotalFechamento || op.precoFechamento * (op.quantidade || 1))
+                              )}
                             </div>
                           )}
                         </div>
@@ -1007,13 +1072,16 @@ const OperacoesContent = () => {
                         <StatusBadge status={op.status} />
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap text-sm font-medium">
-                        <span className={
-                          op.resultadoTotal > 0 
-                            ? 'text-green-600 font-semibold' 
-                            : op.resultadoTotal < 0 
-                              ? 'text-red-600 font-semibold' 
-                              : 'text-gray-500'
-                        }>
+                        <span 
+                          className="font-semibold"
+                          style={{
+                            color: op.resultadoTotal > 0 
+                              ? theme === 'dark' ? '#00cc00' : '#16a34a' 
+                              : op.resultadoTotal < 0 
+                                ? '#dc2626' 
+                                : '#6b7280'
+                          }}
+                        >
                           {formatarMoeda(op.resultadoTotal)}
                         </span>
                       </td>
@@ -1021,7 +1089,11 @@ const OperacoesContent = () => {
                         <div className="flex flex-wrap items-center gap-1">
                           <Link 
                             href={`/operacoes/editar/${op._id}`} 
-                            className="bg-blue-100 text-blue-700 hover:bg-blue-200 px-1.5 py-0.5 rounded-sm flex items-center text-xs"
+                            className="px-1.5 py-0.5 rounded-sm flex items-center text-xs"
+                            style={{
+                              backgroundColor: theme === 'dark' ? '#1e3a8a' : '#dbeafe',
+                              color: theme === 'dark' ? '#bfdbfe' : '#1e40af'
+                            }}
                           >
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 mr-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -1032,7 +1104,11 @@ const OperacoesContent = () => {
                           {(op.status === 'Aberta' || op.status === 'Parcialmente Fechada') && (
                             <button 
                               onClick={() => handleFecharOperacao(op._id)}
-                              className="bg-orange-100 text-orange-700 hover:bg-orange-200 px-1.5 py-0.5 rounded-sm flex items-center text-xs"
+                              className="px-1.5 py-0.5 rounded-sm flex items-center text-xs"
+                              style={{
+                                backgroundColor: theme === 'dark' ? '#7c2d12' : '#ffedd5',
+                                color: theme === 'dark' ? '#fdba74' : '#c2410c'
+                              }}
                             >
                               <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 mr-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
@@ -1043,7 +1119,11 @@ const OperacoesContent = () => {
                           
                           <button 
                             onClick={() => handleDelete(op._id, op.ticker || op.nome || 'esta operação')}
-                            className="bg-red-100 text-red-700 hover:bg-red-200 px-1.5 py-0.5 rounded-sm flex items-center text-xs"
+                            className="px-1.5 py-0.5 rounded-sm flex items-center text-xs"
+                            style={{
+                              backgroundColor: theme === 'dark' ? '#7f1d1d' : '#fee2e2',
+                              color: theme === 'dark' ? '#fecaca' : '#b91c1c'
+                            }}
                           >
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 mr-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
