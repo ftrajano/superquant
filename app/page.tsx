@@ -35,7 +35,7 @@ export default function Home() {
               </p>
             </div>
 
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-2">
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
               <Link href="/operacoes" className="block bg-[var(--surface-card)] overflow-hidden rounded-lg shadow hover:shadow-lg transition-shadow duration-300">
                 <div className="p-6">
                   <h3 className="text-xl font-semibold text-[var(--primary)]">Minhas Operações</h3>
@@ -65,6 +65,18 @@ export default function Home() {
                   <h3 className="text-xl font-semibold text-[var(--primary)]">Relatórios</h3>
                   <p className="mt-2 text-[var(--text-secondary)]">
                     Veja estatísticas e resultados das suas operações
+                  </p>
+                  <div className="mt-4 text-sm font-medium text-[var(--primary)]">
+                    Acessar →
+                  </div>
+                </div>
+              </Link>
+              
+              <Link href="/quant" className="block bg-[var(--surface-card)] overflow-hidden rounded-lg shadow hover:shadow-lg transition-shadow duration-300">
+                <div className="p-6">
+                  <h3 className="text-xl font-semibold text-[var(--primary)]">Quant</h3>
+                  <p className="mt-2 text-[var(--text-secondary)]">
+                    Análise quantitativa de opções com dados em tempo real
                   </p>
                   <div className="mt-4 text-sm font-medium text-[var(--primary)]">
                     Acessar →

@@ -32,7 +32,8 @@ const OperacoesContent = () => {
     'janeiro': 'janeiro', 'fevereiro': 'fevereiro', 'marco': 'marco', 
     'abril': 'abril', 'maio': 'maio', 'junho': 'junho',
     'julho': 'julho', 'agosto': 'agosto', 'setembro': 'setembro',
-    'outubro': 'outubro', 'novembro': 'novembro', 'dezembro': 'dezembro'
+    'outubro': 'outubro', 'novembro': 'novembro', 'dezembro': 'dezembro', 
+    'todas': 'todas'
   };
   
   // Normalizar o mês para garantir que seja um dos valores válidos
@@ -85,7 +86,8 @@ const OperacoesContent = () => {
     { value: 'setembro', label: 'Setembro' },
     { value: 'outubro', label: 'Outubro' },
     { value: 'novembro', label: 'Novembro' },
-    { value: 'dezembro', label: 'Dezembro' }
+    { value: 'dezembro', label: 'Dezembro' },
+    { value: 'todas', label: 'Todas' }
   ];
   
   // Redirecionar para login se não estiver autenticado
@@ -110,7 +112,15 @@ const OperacoesContent = () => {
         console.log(`Buscando operações para Mês: ${mesAtivo}, Ano: ${anoAtivo}, Filtro: ${statusFiltro}`);
         console.log('Dados da sessão:', session);
         
-        let queryParams = `mes=${mesAtivo}&ano=${anoAtivo}`;
+        let queryParams = '';
+        
+        // Se for "todas", não envia o parâmetro de mês para buscar todas as operações do ano
+        if (mesAtivo !== 'todas') {
+          queryParams = `mes=${mesAtivo}&`;
+        }
+        
+        queryParams += `ano=${anoAtivo}`;
+        
         if (statusFiltro !== 'Todos') {
           queryParams += `&status=${statusFiltro}`;
         }
@@ -203,12 +213,20 @@ const OperacoesContent = () => {
   };
   
   const calcularSaldoMesAtual = () => {
-    // Filtra apenas operações fechadas deste mês e ano
-    const operacoesFechadas = operacoes.filter(op => 
-      op.status === 'Fechada' && 
-      op.mesReferencia?.toLowerCase() === mesAtivo?.toLowerCase() && 
-      (op.anoReferencia?.toString() === anoAtivo?.toString())
-    );
+    // Filtra apenas operações fechadas deste mês e ano (ou todas do ano, se mesAtivo for "todas")
+    const operacoesFechadas = operacoes.filter(op => {
+      // Verificação básica de status
+      if (op.status !== 'Fechada') return false;
+      
+      // Se for "todas", considerar todas operações do ano
+      if (mesAtivo === 'todas') {
+        return op.anoReferencia?.toString() === anoAtivo?.toString();
+      }
+      
+      // Caso contrário, filtrar pelo mês e ano específicos
+      return op.mesReferencia?.toLowerCase() === mesAtivo?.toLowerCase() && 
+             op.anoReferencia?.toString() === anoAtivo?.toString();
+    });
     
     // Calcula o saldo total das operações fechadas
     return operacoesFechadas.reduce((total, op) => total + (op.resultadoTotal || 0), 0);
@@ -329,9 +347,16 @@ const OperacoesContent = () => {
         throw new Error('Quantidade é obrigatória e deve ser um número positivo');
       }
       
+      // Se estivermos na visualização "todas", definir um mês padrão para a nova operação
+      // pois a API requer um mês de referência ao criar
+      const mesDaOperacao = mesAtivo === 'todas' ? 
+        // Usar o mês atual como padrão quando estiver na visualização "todas"
+        meses[new Date().getMonth()].value : 
+        mesAtivo;
+      
       const novaOperacao = {
         ticker: formData.ticker.trim(),
-        mesReferencia: mesAtivo,
+        mesReferencia: mesDaOperacao,
         anoReferencia: anoAtivo,
         tipo: formData.tipo,
         direcao: formData.direcao,
@@ -933,7 +958,11 @@ const OperacoesContent = () => {
         <>
           {operacoes.length === 0 ? (
             <div className="text-center py-8 bg-[var(--surface-secondary)] rounded-lg">
-              <p className="text-[var(--text-secondary)]">Nenhuma operação encontrada para {mesAtivo}.</p>
+              <p className="text-[var(--text-secondary)]">
+                {mesAtivo === 'todas' 
+                  ? `Nenhuma operação encontrada para o ano de ${anoAtivo}.` 
+                  : `Nenhuma operação encontrada para ${mesAtivo} de ${anoAtivo}.`}
+              </p>
               <button 
                 onClick={() => setShowForm(true)}
                 className="mt-4 inline-block btn btn-primary px-4 py-2 rounded"

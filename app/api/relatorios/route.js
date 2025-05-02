@@ -49,7 +49,8 @@ const agruparResultadosPorMes = (operacoes) => {
     console.log('Sem operações, retornando dados vazios.');
     return {
       resumoPorMes: [],
-      detalhesPorMes: {}
+      detalhesPorMes: {},
+      lucroAcumulado: []
     };
   }
   
@@ -124,7 +125,8 @@ const agruparResultadosPorMes = (operacoes) => {
     console.log('Sem operações processáveis, retornando dados vazios.');
     return {
       resumoPorMes: [],
-      detalhesPorMes: {}
+      detalhesPorMes: {},
+      lucroAcumulado: []
     };
   }
   
@@ -176,6 +178,33 @@ const agruparResultadosPorMes = (operacoes) => {
     return mesesIndice[mesA] - mesesIndice[mesB];
   });
   
+  // Calcular dados para o gráfico de lucro acumulado
+  // Primeiro, ordenamos as operações por data de fechamento
+  const operacoesOrdenadas = [...dadosProcessados].sort((a, b) => {
+    return new Date(a.dataFechamento) - new Date(b.dataFechamento);
+  });
+  
+  // Agora criamos pontos de dados para o lucro acumulado ao longo do tempo
+  let saldoAcumulado = 0;
+  const lucroAcumulado = operacoesOrdenadas.map(op => {
+    saldoAcumulado += op.resultado;
+    
+    const data = new Date(op.dataFechamento);
+    // Formatar data como "DD/MM/YYYY"
+    const dataFormatada = `${String(data.getDate()).padStart(2, '0')}/${String(data.getMonth() + 1).padStart(2, '0')}/${data.getFullYear()}`;
+    
+    return {
+      data: dataFormatada,
+      dataCompleta: op.dataFechamento,
+      saldo: saldoAcumulado,
+      operacao: {
+        id: op.id,
+        ticker: op.ticker,
+        resultado: op.resultado
+      }
+    };
+  });
+  
   // Ordenar operações dentro de cada mês por data de fechamento
   Object.keys(operacoesPorMes).forEach(mes => {
     operacoesPorMes[mes].sort((a, b) => 
@@ -188,16 +217,19 @@ const agruparResultadosPorMes = (operacoes) => {
     console.log('Nenhum mês com dados, retornando dados vazios.');
     return {
       resumoPorMes: [],
-      detalhesPorMes: {}
+      detalhesPorMes: {},
+      lucroAcumulado: []
     };
   }
   
   console.log('Dados por mês gerados:', resumoPorMes);
+  console.log('Lucro acumulado gerado com', lucroAcumulado.length, 'pontos de dados');
   console.log('Detalhes por mês disponíveis para:', Object.keys(operacoesPorMes));
   
   return {
     resumoPorMes: resumoPorMes,
-    detalhesPorMes: operacoesPorMes
+    detalhesPorMes: operacoesPorMes,
+    lucroAcumulado: lucroAcumulado
   };
 };
 
@@ -273,10 +305,32 @@ export async function GET(request) {
                          'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
     
     // Obter a sessão de autenticação para recuperar o ID do usuário
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
+    let session;
+    try {
+      session = await getServerSession(authOptions);
+      console.log('Sessão obtida:', session);
+    } catch (sessionError) {
+      console.error('Erro ao obter sessão:', sessionError);
       return NextResponse.json(
-        { error: 'Não autenticado' },
+        { error: 'Falha ao verificar autenticação', details: sessionError.message },
+        { status: 500 }
+      );
+    }
+    
+    // Verificar se o usuário está autenticado
+    if (!session?.user) {
+      console.error('Sessão sem dados de usuário:', session);
+      return NextResponse.json(
+        { error: 'Não autenticado - sessão inválida' },
+        { status: 401 }
+      );
+    }
+    
+    // Verificar se o ID do usuário está presente
+    if (!session.user.id) {
+      console.error('Sessão sem ID de usuário:', session.user);
+      return NextResponse.json(
+        { error: 'Não autenticado - ID de usuário não encontrado' },
         { status: 401 }
       );
     }
@@ -399,10 +453,18 @@ export async function GET(request) {
     
     console.log('Query para operações fechadas:', JSON.stringify(queryOperacoesFechadas));
     
-    const operacoesFechadasPeriodo = await Operacao.find(queryOperacoesFechadas)
-      .sort({ dataFechamento: -1 });
+    let operacoesFechadasPeriodo = [];
+    try {
+      operacoesFechadasPeriodo = await Operacao.find(queryOperacoesFechadas)
+        .sort({ dataFechamento: -1 })
+        .lean(); // Usar lean() para melhor performance, retornando objetos JS simples
       
-    console.log(`Encontradas ${operacoesFechadasPeriodo.length} operações fechadas`);
+      console.log(`Encontradas ${operacoesFechadasPeriodo.length} operações fechadas`);
+    } catch (dbError) {
+      console.error('Erro ao buscar operações fechadas:', dbError);
+      // Continuar com um array vazio em vez de falhar completamente
+      console.log('Continuando com array vazio para operações fechadas');
+    }
     
     // Buscar todas as operações no período (abertas e fechadas)
     let queryTodasOperacoes = {
@@ -419,10 +481,18 @@ export async function GET(request) {
     
     console.log('Query para todas operações:', JSON.stringify(queryTodasOperacoes));
     
-    const todasOperacoes = await Operacao.find(queryTodasOperacoes)
-      .sort({ dataAbertura: -1 });
+    let todasOperacoes = [];
+    try {
+      todasOperacoes = await Operacao.find(queryTodasOperacoes)
+        .sort({ dataAbertura: -1 })
+        .lean(); // Usar lean() para melhor performance
       
-    console.log(`Encontradas ${todasOperacoes.length} operações no total`);
+      console.log(`Encontradas ${todasOperacoes.length} operações no total`);
+    } catch (dbError) {
+      console.error('Erro ao buscar todas as operações:', dbError);
+      // Continuar com um array vazio em vez de falhar completamente
+      console.log('Continuando com array vazio para todas as operações');
+    }
     
     // Filtragem de operações para evitar dupla contagem em operações de fechamento parcial
     // Para métricas, apenas considerar operações completamente fechadas ou
@@ -446,14 +516,32 @@ export async function GET(request) {
     console.log(`${operacoesParaMetricas.length} operações filtradas para cálculo de métricas`);
     
     // === MÉTRICAS GERAIS ===
-    const totalOperacoes = todasOperacoes.length;
-    const resultadoTotal = operacoesParaMetricas.reduce((sum, op) => sum + (op.resultadoTotal || 0), 0);
-    const operacoesLucrativas = operacoesParaMetricas.filter(op => op.resultadoTotal > 0).length;
-    const taxaAcerto = operacoesParaMetricas.length > 0 
-      ? Math.round((operacoesLucrativas / operacoesParaMetricas.length) * 100)
+    // Garantir que as operações existem e são arrays antes de usar métodos de array
+    const totalOperacoes = Array.isArray(todasOperacoes) ? todasOperacoes.length : 0;
+    
+    // Verificar e garantir que operacoesParaMetricas é um array válido
+    const operacoesParaMetricasValidas = Array.isArray(operacoesParaMetricas) ? operacoesParaMetricas : [];
+    
+    // Calcular resultado total com proteção contra valores inválidos
+    const resultadoTotal = operacoesParaMetricasValidas.reduce((sum, op) => {
+      // Garantir que resultadoTotal é um número válido ou usar 0
+      const valor = op && typeof op.resultadoTotal === 'number' ? op.resultadoTotal : 0;
+      return sum + valor;
+    }, 0);
+    
+    // Contar operações lucrativas com proteção contra valores inválidos
+    const operacoesLucrativas = operacoesParaMetricasValidas.filter(op => 
+      op && typeof op.resultadoTotal === 'number' && op.resultadoTotal > 0
+    ).length;
+    
+    // Calcular taxa de acerto com proteção contra divisão por zero
+    const taxaAcerto = operacoesParaMetricasValidas.length > 0 
+      ? Math.round((operacoesLucrativas / operacoesParaMetricasValidas.length) * 100)
       : 0;
-    const mediaResultado = operacoesParaMetricas.length > 0
-      ? resultadoTotal / operacoesParaMetricas.length
+    
+    // Calcular média com proteção contra divisão por zero
+    const mediaResultado = operacoesParaMetricasValidas.length > 0
+      ? resultadoTotal / operacoesParaMetricasValidas.length
       : 0;
       
     // Calcular tendência (comparação com período anterior)
@@ -508,10 +596,21 @@ export async function GET(request) {
     }
     
     console.log('Query para período anterior:', JSON.stringify(queryPeriodoAnterior));
-    const operacoesPeriodoAnterior = await Operacao.find(queryPeriodoAnterior);
+    
+    let operacoesPeriodoAnterior = [];
+    try {
+      operacoesPeriodoAnterior = await Operacao.find(queryPeriodoAnterior).lean();
+      console.log(`Encontradas ${operacoesPeriodoAnterior.length} operações do período anterior`);
+    } catch (dbError) {
+      console.error('Erro ao buscar operações do período anterior:', dbError);
+      // Continuar com um array vazio em vez de falhar completamente
+      console.log('Continuando com array vazio para operações do período anterior');
+    }
     
     // Aplicar a mesma lógica de filtragem que usamos para o período atual
     const operacoesAnterioresParaMetricas = operacoesPeriodoAnterior.filter(op => {
+      if (!op) return false; // Proteção contra valores nulos
+      
       if (op.operacaoOriginalId) {
         return true;
       }
@@ -555,7 +654,7 @@ export async function GET(request) {
     
     // === DADOS PARA O GRÁFICO DE RESULTADO POR MÊS ===
     // Buscar apenas operações do usuário atual para o gráfico de resultados
-    const operacoesParaGrafico = await Operacao.find({
+    const queryGrafico = {
       userId: userId, // Apenas operações do usuário atual, não mostrar operações sem userId
       $or: [
         // Operações fechadas completamente
@@ -563,9 +662,17 @@ export async function GET(request) {
         // Operações resultantes de fechamento parcial
         { operacaoOriginalId: { $ne: null } }
       ]
-    });
+    };
     
-    console.log(`Operações fechadas para o gráfico: ${operacoesParaGrafico.length}`);
+    let operacoesParaGrafico = [];
+    try {
+      operacoesParaGrafico = await Operacao.find(queryGrafico).lean();
+      console.log(`Operações fechadas para o gráfico: ${operacoesParaGrafico.length}`);
+    } catch (dbError) {
+      console.error('Erro ao buscar operações para o gráfico:', dbError);
+      // Continuar com um array vazio em vez de falhar completamente
+      console.log('Continuando com array vazio para operações do gráfico');
+    }
     
     // Gerar dados para o gráfico usando operações fechadas e operações de fechamento parcial
     const resultadoPorMes = agruparResultadosPorMes(operacoesParaGrafico);
@@ -630,13 +737,31 @@ export async function GET(request) {
       resultadoPorMes: resultadoPorMes.resumoPorMes,
       operacoesPorMes,
       detalhesPorMes: resultadoPorMes.detalhesPorMes,
+      lucroAcumulado: resultadoPorMes.lucroAcumulado || [],
       melhoresOperacoes,
       pioresOperacoes
     });
   } catch (error) {
     console.error('Erro ao gerar relatórios:', error);
+    
+    // Formato de erro mais detalhado para auxiliar na depuração
+    const errorMessage = error.message || 'Erro desconhecido';
+    const errorStack = error.stack || '';
+    const errorDetails = {
+      message: errorMessage,
+      // Incluir apenas as primeiras 500 caracteres da stack para evitar respostas muito grandes
+      stack: process.env.NODE_ENV === 'development' ? errorStack.substring(0, 500) : undefined,
+      // Informações adicionais que podem ajudar no diagnóstico
+      type: error.name || typeof error,
+      code: error.code
+    };
+    
     return NextResponse.json(
-      { error: 'Erro ao gerar relatórios' },
+      { 
+        error: 'Erro ao gerar relatórios',
+        details: errorMessage,
+        debug: process.env.NODE_ENV === 'development' ? errorDetails : undefined
+      },
       { status: 500 }
     );
   }

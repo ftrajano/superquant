@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
+import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
 import NavBar from '@/components/NavBar';
 
 export default function RelatoriosPage() {
@@ -31,18 +31,66 @@ export default function RelatoriosPage() {
           url += `&mes=${mesEspecificoSelecionado}&ano=${anoEspecificoSelecionado}`;
         }
         
+        console.log('Buscando dados em:', url);
         const response = await fetch(url);
         
         if (!response.ok) {
-          throw new Error('Falha ao buscar dados dos relatórios');
+          let errorMessage = 'Falha ao buscar dados dos relatórios';
+          try {
+            // Tentar obter detalhes do erro como JSON primeiro
+            const errorData = await response.json();
+            console.error('Erro detalhado (JSON):', errorData);
+            errorMessage = errorData.error || `Erro ${response.status}`;
+          } catch (jsonError) {
+            // Se falhar, tentar obter como texto
+            try {
+              const errorText = await response.text();
+              console.error('Erro detalhado (texto):', errorText);
+              errorMessage = `${errorMessage}: ${response.status} ${errorText.substring(0, 100)}`;
+            } catch (textError) {
+              // Se tudo falhar, usar mensagem genérica com código de status
+              console.error('Não foi possível extrair detalhes do erro');
+              errorMessage = `${errorMessage}: Código ${response.status}`;
+            }
+          }
+          throw new Error(errorMessage);
         }
         
-        const data = await response.json();
-        console.log("Dados recebidos da API:", data);
-        setDashboardData(data);
+        let data;
+        try {
+          data = await response.json();
+          console.log("Dados recebidos da API:", data);
+          
+          // Garantir que os dados estejam no formato esperado
+          const processedData = {
+            ...data,
+            // Garantir que lucroAcumulado seja sempre um array
+            lucroAcumulado: Array.isArray(data.lucroAcumulado) ? data.lucroAcumulado : [],
+            // Garantir que resultadoPorMes seja sempre um array
+            resultadoPorMes: Array.isArray(data.resultadoPorMes) ? data.resultadoPorMes : [],
+            // Garantir que operacoesPorMes seja sempre um array
+            operacoesPorMes: Array.isArray(data.operacoesPorMes) ? data.operacoesPorMes : [],
+            // Garantir que detalhesPorMes seja sempre um objeto
+            detalhesPorMes: typeof data.detalhesPorMes === 'object' ? data.detalhesPorMes : {},
+            // Garantir que melhoresOperacoes seja sempre um array
+            melhoresOperacoes: Array.isArray(data.melhoresOperacoes) ? data.melhoresOperacoes : [],
+            // Garantir que pioresOperacoes seja sempre um array
+            pioresOperacoes: Array.isArray(data.pioresOperacoes) ? data.pioresOperacoes : [],
+            // Garantir que distribuicaoTipo seja sempre um array
+            distribuicaoTipo: Array.isArray(data.distribuicaoTipo) ? data.distribuicaoTipo : [],
+            // Garantir que distribuicaoDirecao seja sempre um array
+            distribuicaoDirecao: Array.isArray(data.distribuicaoDirecao) ? data.distribuicaoDirecao : []
+          };
+          
+          setDashboardData(processedData);
+          console.log("Dados processados:", processedData);
+        } catch (jsonError) {
+          console.error('Erro ao parsear JSON da resposta:', jsonError);
+          throw new Error('Formato de resposta inválido. A API retornou dados em um formato inesperado.');
+        }
       } catch (err) {
-        console.error('Erro:', err);
-        setError('Não foi possível carregar os relatórios. Por favor, tente novamente.');
+        console.error('Erro ao buscar dados:', err);
+        setError(`Não foi possível carregar os relatórios: ${err.message}`);
       } finally {
         setIsLoading(false);
       }
@@ -99,6 +147,30 @@ export default function RelatoriosPage() {
     }
   };
   
+  // Função para formatar valores com "k" para milhares
+  const formatarValorAbreviado = (valor) => {
+    if (valor === null || valor === undefined) return '—';
+    
+    try {
+      const valorNumerico = Number(valor);
+      
+      // Se o valor for maior que mil, usar formato "k"
+      if (Math.abs(valorNumerico) >= 1000) {
+        const valorEmK = valorNumerico / 1000;
+        // Arredondar para 1 casa decimal se necessário
+        const valorFormatado = valorEmK.toFixed(Math.abs(valorEmK) % 1 > 0.1 ? 1 : 0);
+        return `R$ ${valorNumerico < 0 ? '-' : ''}${valorFormatado}k`;
+      } else {
+        // Para valores menores, usar formato normal com até 1 casa decimal
+        const valorFormatado = valorNumerico.toFixed(Math.abs(valorNumerico) % 1 > 0.1 ? 1 : 0);
+        return `R$ ${valorNumerico < 0 ? '-' : ''}${valorFormatado}`;
+      }
+    } catch (e) {
+      console.error("Erro ao formatar valor abreviado:", e);
+      return '—';
+    }
+  };
+  
   // Componente para exibir valores monetários
   // Importante: Usar o fragmento vazio <> </> para evitar renderização do valor original
   const MoneyValue = ({ value, className }) => {
@@ -111,15 +183,31 @@ export default function RelatoriosPage() {
     );
   };
   
+  // Componente para exibir valores monetários com formato abreviado (k para milhares)
+  const MoneyValueK = ({ value, className }) => {
+    const formattedValue = formatarValorAbreviado(value);
+    
+    return (
+      <>{/* Usando fragmento vazio para não renderizar o valor numérico original */}
+        <span className={className}>{formattedValue}</span>
+      </>
+    );
+  };
+  
   // Componente de card para métricas
-  const MetricCard = ({ title, value, description, color, isMoney = false }) => {
+  const MetricCard = ({ title, value, description, color, isMoney = false, useK = false }) => {
     return (
       <div className="bg-[var(--surface-card)] rounded-lg shadow p-4">
         <h3 className="text-[var(--text-tertiary)] text-sm">{title}</h3>
         <div className="flex items-end mt-1">
           {isMoney ? (
-            // MoneyValue envolve o conteúdo em um fragmento para não renderizar o valor original
-            <MoneyValue value={value} className={`text-2xl font-bold ${color}`} />
+            useK ? (
+              // MoneyValueK para mostrar valor abreviado em "k"
+              <MoneyValueK value={value} className={`text-2xl font-bold ${color}`} />
+            ) : (
+              // MoneyValue envolve o conteúdo em um fragmento para não renderizar o valor original
+              <MoneyValue value={value} className={`text-2xl font-bold ${color}`} />
+            )
           ) : (
             <span className={`text-2xl font-bold ${color}`}>{value}</span>
           )}
@@ -330,6 +418,7 @@ export default function RelatoriosPage() {
               color={dashboardData.resultadoTotal >= 0 ? 'text-[var(--success)]' : 'text-[var(--error)]'}
               description="Soma dos resultados no período"
               isMoney={true}
+              useK={true}
             />
             <MetricCard 
               title="Taxa de Acerto" 
@@ -343,40 +432,64 @@ export default function RelatoriosPage() {
               description="Resultado médio por operação"
               color={dashboardData.mediaResultado >= 0 ? 'text-[var(--success)]' : 'text-[var(--error)]'}
               isMoney={true}
+              useK={false}
             />
           </div>
           
           {/* Conteúdo específico de cada tab */}
           {activeTab === 'desempenho' && (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Gráfico de Resultado por Mês */}
+            <div className="grid grid-cols-1 gap-6">
+              {/* Gráfico de Lucro Acumulado */}
               <div className="bg-white p-4 rounded-lg shadow">
-                <h3 className="text-lg font-semibold text-gray-800 mb-4">Resultado por Mês</h3>
+                <h3 className="text-lg font-semibold text-gray-800 mb-4">Lucro Acumulado</h3>
                 <div className="h-64">
-                  {dashboardData.resultadoPorMes && dashboardData.resultadoPorMes.length > 0 ? (
-                    <>
-                      <p className="text-xs text-gray-500 mb-2 text-center">Clique nas barras para ver detalhes das operações do mês</p>
-                      <ResponsiveContainer width="100%" height="90%">
-                        <BarChart data={dashboardData.resultadoPorMes} onClick={handleBarClick}>
-                          <CartesianGrid strokeDasharray="3 3" />
-                          <XAxis dataKey="mes" />
-                          <YAxis tickFormatter={(value) => `R$ ${value}`} />
-                          <Tooltip formatter={(value) => [`R$ ${value.toFixed(2)}`, 'Resultado']} />
-                          <Legend />
-                          <Bar 
-                            dataKey="resultado" 
-                            fill="#3b82f6" 
-                            name="Resultado" 
-                            isAnimationActive={false}
-                            cursor="pointer"
-                          />
-                        </BarChart>
-                      </ResponsiveContainer>
-                    </>
+                  {dashboardData.lucroAcumulado && Array.isArray(dashboardData.lucroAcumulado) && dashboardData.lucroAcumulado.length > 0 ? (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart 
+                        data={dashboardData.lucroAcumulado}
+                        margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                      >
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis 
+                          dataKey="data" 
+                          tick={{fontSize: 10}}
+                          interval="preserveEnd"
+                          tickFormatter={(value) => {
+                            if (!value || typeof value !== 'string') return '';
+                            const parts = value.split('/');
+                            return parts.length >= 2 ? `${parts[0]}/${parts[1]}` : value;
+                          }}
+                        />
+                        <YAxis 
+                          tickFormatter={(value) => {
+                            if (typeof value !== 'number') return value;
+                            if (Math.abs(value) >= 1000) {
+                              return `${(value / 1000).toFixed(1)}k`;
+                            }
+                            return value;
+                          }} 
+                        />
+                        <Tooltip 
+                          formatter={(value) => [formatarValorAbreviado(value), 'Lucro Acumulado']}
+                          labelFormatter={(label) => typeof label === 'string' ? `Data: ${label}` : 'Data: -'}
+                        />
+                        <Legend />
+                        <Line 
+                          type="monotone" 
+                          dataKey="saldo" 
+                          stroke="#16a34a" 
+                          name="Lucro Acumulado" 
+                          strokeWidth={2}
+                          dot={{r: 2}}
+                          activeDot={{r: 5}}
+                          isAnimationActive={false}
+                        />
+                      </LineChart>
+                    </ResponsiveContainer>
                   ) : (
                     <div className="flex items-center justify-center h-full">
                       <p className="text-gray-500 text-center">
-                        Não há dados de resultados para exibir neste período.<br />
+                        Não há dados de lucro acumulado para exibir neste período.<br />
                         Feche algumas operações para visualizar o gráfico.
                       </p>
                     </div>
@@ -384,33 +497,77 @@ export default function RelatoriosPage() {
                 </div>
               </div>
               
-              {/* Gráfico de Quantidade de Operações por Mês */}
-              <div className="bg-white p-4 rounded-lg shadow">
-                <h3 className="text-lg font-semibold text-gray-800 mb-4">Operações por Mês</h3>
-                <div className="h-64">
-                  {dashboardData.operacoesPorMes && dashboardData.operacoesPorMes.length > 0 ? (
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={dashboardData.operacoesPorMes}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="mes" />
-                        <YAxis />
-                        <Tooltip />
-                        <Legend />
-                        <Bar 
-                          dataKey="quantidade" 
-                          fill="#10b981" 
-                          name="Operações" 
-                          isAnimationActive={false}
-                        />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  ) : (
-                    <div className="flex items-center justify-center h-full">
-                      <p className="text-gray-500 text-center">
-                        Não há dados de operações para exibir neste período.
-                      </p>
-                    </div>
-                  )}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Gráfico de Resultado por Mês */}
+                <div className="bg-white p-4 rounded-lg shadow">
+                  <h3 className="text-lg font-semibold text-gray-800 mb-4">Resultado por Mês</h3>
+                  <div className="h-64">
+                    {dashboardData.resultadoPorMes && dashboardData.resultadoPorMes.length > 0 ? (
+                      <>
+                        <p className="text-xs text-gray-500 mb-2 text-center">Clique nas barras para ver detalhes das operações do mês</p>
+                        <ResponsiveContainer width="100%" height="90%">
+                          <BarChart data={dashboardData.resultadoPorMes} onClick={handleBarClick}>
+                            <CartesianGrid strokeDasharray="3 3" />
+                            <XAxis dataKey="mes" />
+                            <YAxis 
+                              tickFormatter={(value) => {
+                                if (Math.abs(value) >= 1000) {
+                                  return `${(value / 1000).toFixed(1)}k`;
+                                }
+                                return value;
+                              }}
+                            />
+                            <Tooltip formatter={(value) => [formatarValorAbreviado(value), 'Resultado']} />
+                            <Legend />
+                            <Bar 
+                              dataKey="resultado" 
+                              fill="#3b82f6" 
+                              name="Resultado" 
+                              isAnimationActive={false}
+                              cursor="pointer"
+                            />
+                          </BarChart>
+                        </ResponsiveContainer>
+                      </>
+                    ) : (
+                      <div className="flex items-center justify-center h-full">
+                        <p className="text-gray-500 text-center">
+                          Não há dados de resultados para exibir neste período.<br />
+                          Feche algumas operações para visualizar o gráfico.
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+                
+                {/* Gráfico de Quantidade de Operações por Mês */}
+                <div className="bg-white p-4 rounded-lg shadow">
+                  <h3 className="text-lg font-semibold text-gray-800 mb-4">Operações por Mês</h3>
+                  <div className="h-64">
+                    {dashboardData.operacoesPorMes && dashboardData.operacoesPorMes.length > 0 ? (
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart data={dashboardData.operacoesPorMes}>
+                          <CartesianGrid strokeDasharray="3 3" />
+                          <XAxis dataKey="mes" />
+                          <YAxis />
+                          <Tooltip />
+                          <Legend />
+                          <Bar 
+                            dataKey="quantidade" 
+                            fill="#10b981" 
+                            name="Operações" 
+                            isAnimationActive={false}
+                          />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    ) : (
+                      <div className="flex items-center justify-center h-full">
+                        <p className="text-gray-500 text-center">
+                          Não há dados de operações para exibir neste período.
+                        </p>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
@@ -628,7 +785,7 @@ export default function RelatoriosPage() {
                       <p className="text-sm text-gray-500">Total de operações fechadas: {dashboardData.detalhesPorMes[mesSelecionado].length}</p>
                     </div>
                     <div className="text-xl font-bold">
-                      <MoneyValue 
+                      <MoneyValueK 
                         value={dashboardData.resultadoPorMes.find(m => m.mes === mesSelecionado)?.resultado}
                         className={`text-xl font-bold ${
                           dashboardData.resultadoPorMes.find(m => m.mes === mesSelecionado)?.resultado >= 0 

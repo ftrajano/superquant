@@ -99,6 +99,7 @@ export default function NavBar() {
                   <NavLink href="/copytrading">CopyTrading</NavLink>
                   <NavLink href="/relatorios">Relatórios</NavLink>
                   <NavLink href="/margem">Margem</NavLink>
+                  <NavLink href="/quant">Quant</NavLink>
                   
                   {/* Links de administração - apenas para admins */}
                   {session?.user?.role === 'admin' && (
@@ -198,6 +199,7 @@ export default function NavBar() {
               <MobileNavLink href="/copytrading">CopyTrading</MobileNavLink>
               <MobileNavLink href="/relatorios">Relatórios</MobileNavLink>
               <MobileNavLink href="/margem">Margem</MobileNavLink>
+              <MobileNavLink href="/quant">Quant</MobileNavLink>
               
               {/* Admin links para mobile */}
               {session?.user?.role === 'admin' && (
