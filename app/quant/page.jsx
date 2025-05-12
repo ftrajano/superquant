@@ -6,6 +6,7 @@ import NavBar from '@/components/NavBar';
 import { Card } from '@/components/ui';
 import { useTheme } from '@/components/ThemeProvider';
 import StatusBadge from '@/components/ui/StatusBadge.jsx';
+import OptionsRadar from '@/components/radar/OptionsRadar';
 
 export default function QuantPage() {
   const { data: session, status } = useSession();
@@ -22,6 +23,7 @@ export default function QuantPage() {
   const [selectedOptions, setSelectedOptions] = useState([]);
   const [portfolioDelta, setPortfolioDelta] = useState(0);
   const [selectionDelta, setSelectionDelta] = useState(0);
+  const [activeSection, setActiveSection] = useState('delta'); // 'delta' ou 'radar'
 
   // Buscar operações abertas
   const fetchOperacoes = async () => {
@@ -271,7 +273,7 @@ export default function QuantPage() {
           {operacao.quantidade || 1}
         </td>
         <td className="px-4 py-3 text-sm">
-          {formatarMoeda((operacao.preco * operacao.quantidade * 100) || 0)}
+          {formatarMoeda((operacao.preco * operacao.quantidade) || 0)}
         </td>
         <td className="px-4 py-3 text-sm font-medium">
           <span className={`${opData.loadError ? 'text-red-500' : ''} ${
@@ -310,6 +312,265 @@ export default function QuantPage() {
     );
   };
 
+  // Renderizar seção Delta da Carteira
+  const renderDeltaCarteira = () => {
+    return (
+      <>
+        {/* Filtros e Ações com contadores de Delta */}
+        <div className="mb-4 flex flex-wrap justify-between gap-4">
+          <div className="flex items-center space-x-4">
+            {/* Delta da carteira */}
+            <div className="flex items-center px-3 py-2 rounded shadow-sm bg-[var(--surface-card)]">
+              <div className="mr-2 text-xs text-[var(--text-secondary)]">Delta da carteira:</div>
+              <div 
+                className="font-semibold text-sm"
+                style={{
+                  color: portfolioDelta > 0 
+                    ? theme === 'dark' ? '#00cc00' : '#16a34a' 
+                    : portfolioDelta < 0 
+                      ? '#dc2626' 
+                      : '#6b7280'
+                }}
+              >
+                {portfolioDelta > 0 ? '+' : ''}{portfolioDelta}
+              </div>
+            </div>
+            
+            {/* Delta da seleção */}
+            <div className="flex items-center px-3 py-2 rounded shadow-sm bg-[var(--surface-card)]">
+              <div className="mr-2 text-xs text-[var(--text-secondary)]">Delta seleção:</div>
+              <div 
+                className="font-semibold text-sm"
+                style={{
+                  color: selectionDelta > 0 
+                    ? theme === 'dark' ? '#00cc00' : '#16a34a' 
+                    : selectionDelta < 0 
+                      ? '#dc2626' 
+                      : '#6b7280'
+                }}
+              >
+                {selectionDelta > 0 ? '+' : ''}{selectionDelta}
+              </div>
+            </div>
+            
+            <div className="flex items-center px-3 py-2 rounded shadow-sm bg-[var(--surface-card)]">
+              <div className="text-xs text-[var(--text-secondary)]">
+                <span className="font-medium">{operacoes.length}</span> opções • 
+                <span className="font-medium ml-1">{selectedOptions.length}</span> selecionadas
+              </div>
+            </div>
+          </div>
+          
+          {/* Informações sobre delta */}
+          <div className="flex items-center text-xs text-[var(--text-secondary)] italic">
+            Delta = exposição direcional
+          </div>
+        </div>
+        
+        <h2 className="text-xl font-semibold mb-4">Suas Opções Abertas</h2>
+        
+        {/* Estado de carregamento */}
+        {loading && (
+          <div className="text-center py-8">
+            <div className="animate-spin h-8 w-8 border-4 border-[var(--primary)] border-t-transparent rounded-full mx-auto mb-4"></div>
+            <p className="text-[var(--text-secondary)]">Carregando operações...</p>
+          </div>
+        )}
+        
+        {/* Lista de operações */}
+        {!loading && !error && (
+          <>
+            {operacoes.length === 0 ? (
+              <div className="text-center py-8 bg-[var(--surface-secondary)] rounded-lg">
+                <p className="text-[var(--text-secondary)]">
+                  Você não possui operações abertas no momento.
+                </p>
+              </div>
+            ) : (
+              <div className="bg-[var(--surface-card)] rounded-lg shadow overflow-x-auto">
+                <table className="w-full divide-y divide-[var(--surface-border)]">
+                  <thead className="bg-[var(--surface-secondary)]">
+                    <tr>
+                      <th className="w-8 px-2 py-3 text-center text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">Sel</th>
+                      <th className="w-20 px-4 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">Ticker</th>
+                      <th className="w-12 px-4 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">Tipo</th>
+                      <th className="w-20 px-4 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">Direção</th>
+                      <th className="w-20 px-4 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">Strike</th>
+                      <th className="w-24 px-4 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">Vencimento</th>
+                      <th className="w-20 px-4 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">Preço</th>
+                      <th className="w-12 px-3 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">Qtde</th>
+                      <th className="w-24 px-4 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">Valor Total</th>
+                      <th className="w-16 px-4 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">Delta</th>
+                      <th className="w-16 px-4 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">Gamma</th>
+                      <th className="w-16 px-4 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">Theta</th>
+                      <th className="w-16 px-4 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">Vega</th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-[var(--surface-card)] divide-y divide-[var(--surface-border)]">
+                    {operacoes.map(renderOperacaoRow)}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </>
+        )}
+        
+        {/* Detalhes da opção selecionada */}
+        {selectedOption && (
+          <Card className="mb-6 mt-8">
+            <div className="p-4">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-bold">
+                  Detalhes da Opção: {selectedOption.ticker}
+                  {optionDataLoading && (
+                    <span className="ml-3 inline-block h-4 w-4 animate-spin rounded-full border-2 border-solid border-[var(--primary)] border-r-transparent"></span>
+                  )}
+                </h2>
+                <button 
+                  onClick={() => setSelectedOption(null)}
+                  className="p-2 rounded-md text-[var(--text-secondary)] hover:bg-[var(--surface-secondary)]"
+                  aria-label="Fechar detalhes"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                  </svg>
+                </button>
+              </div>
+              
+              {error && (
+                <div className="mb-6 p-4 border border-[var(--error)] rounded-md bg-[var(--error-light)] text-[var(--error)]">
+                  Não foi possível carregar os detalhes para {selectedOption.ticker}: {error}
+                </div>
+              )}
+              
+              {optionDetails && (
+                <>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <h3 className="text-lg font-semibold mb-2">Informações Básicas</h3>
+                      <div className="space-y-2">
+                        <div className="flex justify-between border-b border-[var(--surface-border)] pb-1">
+                          <span className="text-[var(--text-secondary)]">Ativo Base:</span>
+                          <span className="font-medium">{optionDetails.underlier}</span>
+                        </div>
+                        <div className="flex justify-between border-b border-[var(--surface-border)] pb-1">
+                          <span className="text-[var(--text-secondary)]">Tipo:</span>
+                          <span className="font-medium">{optionDetails.type === 'CALL' ? 'CALL' : 'PUT'}</span>
+                        </div>
+                        <div className="flex justify-between border-b border-[var(--surface-border)] pb-1">
+                          <span className="text-[var(--text-secondary)]">Strike:</span>
+                          <span className="font-medium">R$ {optionDetails.strike?.toFixed(2)}</span>
+                        </div>
+                        <div className="flex justify-between border-b border-[var(--surface-border)] pb-1">
+                          <span className="text-[var(--text-secondary)]">Vencimento:</span>
+                          <span className="font-medium">{optionDetails.maturityDate ? new Date(optionDetails.maturityDate).toLocaleDateString('pt-BR') : 'N/A'}</span>
+                        </div>
+                        <div className="flex justify-between border-b border-[var(--surface-border)] pb-1">
+                          <span className="text-[var(--text-secondary)]">Dias até vencimento:</span>
+                          <span className="font-medium">{optionDetails.daysToMaturity || 'N/A'}</span>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <h3 className="text-lg font-semibold mb-2">Dados de Mercado</h3>
+                      <div className="space-y-2">
+                        <div className="flex justify-between border-b border-[var(--surface-border)] pb-1">
+                          <span className="text-[var(--text-secondary)]">Último Preço:</span>
+                          <span className="font-medium">R$ {optionDetails.last?.toFixed(2) || 'N/A'}</span>
+                        </div>
+                        <div className="flex justify-between border-b border-[var(--surface-border)] pb-1">
+                          <span className="text-[var(--text-secondary)]">Variação:</span>
+                          <span className={`font-medium ${(optionDetails.change || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                            {optionDetails.change?.toFixed(2) || 'N/A'}%
+                          </span>
+                        </div>
+                        <div className="flex justify-between border-b border-[var(--surface-border)] pb-1">
+                          <span className="text-[var(--text-secondary)]">Volume:</span>
+                          <span className="font-medium">{optionDetails.volume?.toLocaleString() || 'N/A'}</span>
+                        </div>
+                        <div className="flex justify-between border-b border-[var(--surface-border)] pb-1">
+                          <span className="text-[var(--text-secondary)]">Volatilidade Implícita:</span>
+                          <span className="font-medium">{optionDetails.impliedVolatility?.toFixed(2) || 'N/A'}%</span>
+                        </div>
+                        <div className="flex justify-between border-b border-[var(--surface-border)] pb-1">
+                          <span className="text-[var(--text-secondary)]">Delta:</span>
+                          <span className="font-medium">{optionDetails.delta?.toFixed(3) || 'N/A'}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Dados do modelo Black-Scholes */}
+                  {bsData && (
+                    <div className="mt-6">
+                      <h3 className="text-lg font-semibold mb-2">Modelo Black-Scholes</h3>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                          <div className="space-y-2">
+                            <div className="flex justify-between border-b border-[var(--surface-border)] pb-1">
+                              <span className="text-[var(--text-secondary)]">Preço Teórico:</span>
+                              <span className="font-medium">R$ {bsData.price?.toFixed(2) || 'N/A'}</span>
+                            </div>
+                            <div className="flex justify-between border-b border-[var(--surface-border)] pb-1">
+                              <span className="text-[var(--text-secondary)]">Preço do Ativo:</span>
+                              <span className="font-medium">R$ {bsData.stockPrice?.toFixed(2) || 'N/A'}</span>
+                            </div>
+                            <div className="flex justify-between border-b border-[var(--surface-border)] pb-1">
+                              <span className="text-[var(--text-secondary)]">Taxa de Juros:</span>
+                              <span className="font-medium">{bsData.interestRate?.toFixed(2) || 'N/A'}%</span>
+                            </div>
+                            <div className="flex justify-between border-b border-[var(--surface-border)] pb-1">
+                              <span className="text-[var(--text-secondary)]">Volatilidade:</span>
+                              <span className="font-medium">{(bsData.volatility * 100)?.toFixed(2) || 'N/A'}%</span>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div>
+                          <h3 className="text-lg font-semibold mb-2">Greeks</h3>
+                          <div className="grid grid-cols-2 gap-4">
+                            <div className="p-3 bg-[var(--surface-tonal)] rounded-md">
+                              <div className="text-sm text-[var(--text-secondary)]">Delta</div>
+                              <div className="text-lg font-bold">{bsData.delta?.toFixed(3) || 'N/A'}</div>
+                            </div>
+                            <div className="p-3 bg-[var(--surface-tonal)] rounded-md">
+                              <div className="text-sm text-[var(--text-secondary)]">Gamma</div>
+                              <div className="text-lg font-bold">{bsData.gamma?.toFixed(3) || 'N/A'}</div>
+                            </div>
+                            <div className="p-3 bg-[var(--surface-tonal)] rounded-md">
+                              <div className="text-sm text-[var(--text-secondary)]">Theta</div>
+                              <div className="text-lg font-bold">{bsData.theta?.toFixed(3) || 'N/A'}</div>
+                            </div>
+                            <div className="p-3 bg-[var(--surface-tonal)] rounded-md">
+                              <div className="text-sm text-[var(--text-secondary)]">Vega</div>
+                              <div className="text-lg font-bold">{bsData.vega?.toFixed(3) || 'N/A'}</div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+          </Card>
+        )}
+        
+        {/* Busca manual de opções */}
+        {!selectedOption && !loading && (
+          <Card className="mb-6">
+            <div className="p-4">
+              <p className="text-center text-[var(--text-secondary)]">
+                Selecione uma opção da tabela acima para visualizar informações detalhadas.
+              </p>
+            </div>
+          </Card>
+        )}
+      </>
+    );
+  };
+
   return (
     <div className="min-h-screen bg-[var(--surface-bg)]">
       <NavBar />
@@ -329,257 +590,32 @@ export default function QuantPage() {
             </div>
           )}
           
-          {/* Filtros e Ações com contadores de Delta */}
-          <div className="mb-4 flex flex-wrap justify-between gap-4">
-            <div className="flex items-center space-x-4">
-              {/* Delta da carteira */}
-              <div className="flex items-center px-3 py-2 rounded shadow-sm bg-[var(--surface-card)]">
-                <div className="mr-2 text-xs text-[var(--text-secondary)]">Delta da carteira:</div>
-                <div 
-                  className="font-semibold text-sm"
-                  style={{
-                    color: portfolioDelta > 0 
-                      ? theme === 'dark' ? '#00cc00' : '#16a34a' 
-                      : portfolioDelta < 0 
-                        ? '#dc2626' 
-                        : '#6b7280'
-                  }}
-                >
-                  {portfolioDelta > 0 ? '+' : ''}{portfolioDelta}
-                </div>
-              </div>
-              
-              {/* Delta da seleção */}
-              <div className="flex items-center px-3 py-2 rounded shadow-sm bg-[var(--surface-card)]">
-                <div className="mr-2 text-xs text-[var(--text-secondary)]">Delta seleção:</div>
-                <div 
-                  className="font-semibold text-sm"
-                  style={{
-                    color: selectionDelta > 0 
-                      ? theme === 'dark' ? '#00cc00' : '#16a34a' 
-                      : selectionDelta < 0 
-                        ? '#dc2626' 
-                        : '#6b7280'
-                  }}
-                >
-                  {selectionDelta > 0 ? '+' : ''}{selectionDelta}
-                </div>
-              </div>
-              
-              <div className="flex items-center px-3 py-2 rounded shadow-sm bg-[var(--surface-card)]">
-                <div className="text-xs text-[var(--text-secondary)]">
-                  <span className="font-medium">{operacoes.length}</span> opções • 
-                  <span className="font-medium ml-1">{selectedOptions.length}</span> selecionadas
-                </div>
-              </div>
-            </div>
-            
-            {/* Informações sobre delta */}
-            <div className="flex items-center text-xs text-[var(--text-secondary)] italic">
-              Delta = exposição direcional
-            </div>
+          {/* Navegação entre as seções */}
+          <div className="flex mb-6 border-b border-[var(--surface-border)]">
+            <button
+              onClick={() => setActiveSection('delta')}
+              className={`py-2 px-4 font-medium text-sm ${
+                activeSection === 'delta'
+                  ? 'border-b-2 border-[var(--primary)] text-[var(--primary)]'
+                  : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+              }`}
+            >
+              Delta da Carteira
+            </button>
+            <button
+              onClick={() => setActiveSection('radar')}
+              className={`py-2 px-4 font-medium text-sm ${
+                activeSection === 'radar'
+                  ? 'border-b-2 border-[var(--primary)] text-[var(--primary)]'
+                  : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+              }`}
+            >
+              Radar de Opções
+            </button>
           </div>
           
-          <h2 className="text-xl font-semibold mb-4">Suas Opções Abertas</h2>
-          
-          {/* Estado de carregamento */}
-          {loading && (
-            <div className="text-center py-8">
-              <div className="animate-spin h-8 w-8 border-4 border-[var(--primary)] border-t-transparent rounded-full mx-auto mb-4"></div>
-              <p className="text-[var(--text-secondary)]">Carregando operações...</p>
-            </div>
-          )}
-          
-          {/* Lista de operações */}
-          {!loading && !error && (
-            <>
-              {operacoes.length === 0 ? (
-                <div className="text-center py-8 bg-[var(--surface-secondary)] rounded-lg">
-                  <p className="text-[var(--text-secondary)]">
-                    Você não possui operações abertas no momento.
-                  </p>
-                </div>
-              ) : (
-                <div className="bg-[var(--surface-card)] rounded-lg shadow">
-                  <table className="w-full table-fixed divide-y divide-[var(--surface-border)]">
-                    <thead className="bg-[var(--surface-secondary)]">
-                      <tr>
-                        <th className="w-8 px-2 py-3 text-center text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">Sel</th>
-                        <th className="w-20 px-4 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">Ticker</th>
-                        <th className="w-12 px-4 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">Tipo</th>
-                        <th className="w-20 px-4 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">Direção</th>
-                        <th className="w-20 px-4 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">Strike</th>
-                        <th className="w-24 px-4 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">Vencimento</th>
-                        <th className="w-20 px-4 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">Preço</th>
-                        <th className="w-12 px-3 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">Qtde</th>
-                        <th className="w-24 px-4 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">Valor Total</th>
-                        <th className="w-16 px-4 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">Delta</th>
-                        <th className="w-16 px-4 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">Gamma</th>
-                        <th className="w-16 px-4 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">Theta</th>
-                        <th className="w-16 px-4 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">Vega</th>
-                      </tr>
-                    </thead>
-                    <tbody className="bg-[var(--surface-card)] divide-y divide-[var(--surface-border)]">
-                      {operacoes.map(renderOperacaoRow)}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            </>
-          )}
-          
-          {/* Detalhes da opção selecionada */}
-          {selectedOption && (
-            <Card className="mb-6 mt-8">
-              <div className="p-4">
-                <div className="flex justify-between items-center mb-4">
-                  <h2 className="text-xl font-bold">
-                    Detalhes da Opção: {selectedOption.ticker}
-                    {optionDataLoading && (
-                      <span className="ml-3 inline-block h-4 w-4 animate-spin rounded-full border-2 border-solid border-[var(--primary)] border-r-transparent"></span>
-                    )}
-                  </h2>
-                  <button 
-                    onClick={() => setSelectedOption(null)}
-                    className="p-2 rounded-md text-[var(--text-secondary)] hover:bg-[var(--surface-secondary)]"
-                    aria-label="Fechar detalhes"
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-                    </svg>
-                  </button>
-                </div>
-                
-                {error && (
-                  <div className="mb-6 p-4 border border-[var(--error)] rounded-md bg-[var(--error-light)] text-[var(--error)]">
-                    Não foi possível carregar os detalhes para {selectedOption.ticker}: {error}
-                  </div>
-                )}
-                
-                {optionDetails && (
-                  <>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div>
-                        <h3 className="text-lg font-semibold mb-2">Informações Básicas</h3>
-                        <div className="space-y-2">
-                          <div className="flex justify-between border-b border-[var(--surface-border)] pb-1">
-                            <span className="text-[var(--text-secondary)]">Ativo Base:</span>
-                            <span className="font-medium">{optionDetails.underlier}</span>
-                          </div>
-                          <div className="flex justify-between border-b border-[var(--surface-border)] pb-1">
-                            <span className="text-[var(--text-secondary)]">Tipo:</span>
-                            <span className="font-medium">{optionDetails.type === 'CALL' ? 'CALL' : 'PUT'}</span>
-                          </div>
-                          <div className="flex justify-between border-b border-[var(--surface-border)] pb-1">
-                            <span className="text-[var(--text-secondary)]">Strike:</span>
-                            <span className="font-medium">R$ {optionDetails.strike?.toFixed(2)}</span>
-                          </div>
-                          <div className="flex justify-between border-b border-[var(--surface-border)] pb-1">
-                            <span className="text-[var(--text-secondary)]">Vencimento:</span>
-                            <span className="font-medium">{optionDetails.maturityDate ? new Date(optionDetails.maturityDate).toLocaleDateString('pt-BR') : 'N/A'}</span>
-                          </div>
-                          <div className="flex justify-between border-b border-[var(--surface-border)] pb-1">
-                            <span className="text-[var(--text-secondary)]">Dias até vencimento:</span>
-                            <span className="font-medium">{optionDetails.daysToMaturity || 'N/A'}</span>
-                          </div>
-                        </div>
-                      </div>
-                      
-                      <div>
-                        <h3 className="text-lg font-semibold mb-2">Dados de Mercado</h3>
-                        <div className="space-y-2">
-                          <div className="flex justify-between border-b border-[var(--surface-border)] pb-1">
-                            <span className="text-[var(--text-secondary)]">Último Preço:</span>
-                            <span className="font-medium">R$ {optionDetails.last?.toFixed(2) || 'N/A'}</span>
-                          </div>
-                          <div className="flex justify-between border-b border-[var(--surface-border)] pb-1">
-                            <span className="text-[var(--text-secondary)]">Variação:</span>
-                            <span className={`font-medium ${(optionDetails.change || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                              {optionDetails.change?.toFixed(2) || 'N/A'}%
-                            </span>
-                          </div>
-                          <div className="flex justify-between border-b border-[var(--surface-border)] pb-1">
-                            <span className="text-[var(--text-secondary)]">Volume:</span>
-                            <span className="font-medium">{optionDetails.volume?.toLocaleString() || 'N/A'}</span>
-                          </div>
-                          <div className="flex justify-between border-b border-[var(--surface-border)] pb-1">
-                            <span className="text-[var(--text-secondary)]">Volatilidade Implícita:</span>
-                            <span className="font-medium">{optionDetails.impliedVolatility?.toFixed(2) || 'N/A'}%</span>
-                          </div>
-                          <div className="flex justify-between border-b border-[var(--surface-border)] pb-1">
-                            <span className="text-[var(--text-secondary)]">Delta:</span>
-                            <span className="font-medium">{optionDetails.delta?.toFixed(3) || 'N/A'}</span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    {/* Dados do modelo Black-Scholes */}
-                    {bsData && (
-                      <div className="mt-6">
-                        <h3 className="text-lg font-semibold mb-2">Modelo Black-Scholes</h3>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                          <div>
-                            <div className="space-y-2">
-                              <div className="flex justify-between border-b border-[var(--surface-border)] pb-1">
-                                <span className="text-[var(--text-secondary)]">Preço Teórico:</span>
-                                <span className="font-medium">R$ {bsData.price?.toFixed(2) || 'N/A'}</span>
-                              </div>
-                              <div className="flex justify-between border-b border-[var(--surface-border)] pb-1">
-                                <span className="text-[var(--text-secondary)]">Preço do Ativo:</span>
-                                <span className="font-medium">R$ {bsData.stockPrice?.toFixed(2) || 'N/A'}</span>
-                              </div>
-                              <div className="flex justify-between border-b border-[var(--surface-border)] pb-1">
-                                <span className="text-[var(--text-secondary)]">Taxa de Juros:</span>
-                                <span className="font-medium">{bsData.interestRate?.toFixed(2) || 'N/A'}%</span>
-                              </div>
-                              <div className="flex justify-between border-b border-[var(--surface-border)] pb-1">
-                                <span className="text-[var(--text-secondary)]">Volatilidade:</span>
-                                <span className="font-medium">{(bsData.volatility * 100)?.toFixed(2) || 'N/A'}%</span>
-                              </div>
-                            </div>
-                          </div>
-                          
-                          <div>
-                            <h3 className="text-lg font-semibold mb-2">Greeks</h3>
-                            <div className="grid grid-cols-2 gap-4">
-                              <div className="p-3 bg-[var(--surface-tonal)] rounded-md">
-                                <div className="text-sm text-[var(--text-secondary)]">Delta</div>
-                                <div className="text-lg font-bold">{bsData.delta?.toFixed(3) || 'N/A'}</div>
-                              </div>
-                              <div className="p-3 bg-[var(--surface-tonal)] rounded-md">
-                                <div className="text-sm text-[var(--text-secondary)]">Gamma</div>
-                                <div className="text-lg font-bold">{bsData.gamma?.toFixed(3) || 'N/A'}</div>
-                              </div>
-                              <div className="p-3 bg-[var(--surface-tonal)] rounded-md">
-                                <div className="text-sm text-[var(--text-secondary)]">Theta</div>
-                                <div className="text-lg font-bold">{bsData.theta?.toFixed(3) || 'N/A'}</div>
-                              </div>
-                              <div className="p-3 bg-[var(--surface-tonal)] rounded-md">
-                                <div className="text-sm text-[var(--text-secondary)]">Vega</div>
-                                <div className="text-lg font-bold">{bsData.vega?.toFixed(3) || 'N/A'}</div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                  </>
-                )}
-              </div>
-            </Card>
-          )}
-          
-          {/* Busca manual de opções */}
-          {!selectedOption && !loading && (
-            <Card className="mb-6">
-              <div className="p-4">
-                <p className="text-center text-[var(--text-secondary)]">
-                  Selecione uma opção da tabela acima para visualizar informações detalhadas.
-                </p>
-              </div>
-            </Card>
-          )}
+          {/* Conteúdo da seção ativa */}
+          {activeSection === 'delta' ? renderDeltaCarteira() : <OptionsRadar />}
         </div>
       </main>
     </div>

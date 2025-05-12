@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
+import React, { useState, useEffect, Suspense, useMemo } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
@@ -59,7 +59,7 @@ const OperacoesContent = () => {
     observacoes: ''
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
+
   // Estados para o modal de fechar operação
   const [showFecharModal, setShowFecharModal] = useState(false);
   const [operacaoParaFechar, setOperacaoParaFechar] = useState(null);
@@ -68,10 +68,16 @@ const OperacoesContent = () => {
   const [fechamentoParcial, setFechamentoParcial] = useState(false);
   const [isSubmittingFechar, setIsSubmittingFechar] = useState(false);
   const [statusFiltro, setStatusFiltro] = useState('Todos');
-  
+
   // Estados para seleção de cesta de operações
   const [cestalSelecionada, setCestaSeleccionada] = useState([]);
   const [mostraResumo, setMostraResumo] = useState(false);
+
+  // Estados para ordenação
+  const [ordenacao, setOrdenacao] = useState({
+    campo: null,
+    direcao: 'asc'
+  });
   
   // Lista de meses para as abas
   const meses = [
@@ -236,6 +242,57 @@ const OperacoesContent = () => {
     setCestaSeleccionada([]);
     setMostraResumo(false);
   };
+
+  // Função para ordenar operações
+  const handleSort = (campo) => {
+    setOrdenacao(prev => ({
+      campo,
+      direcao: prev.campo === campo && prev.direcao === 'asc' ? 'desc' : 'asc'
+    }));
+  };
+
+  // Função para aplicar a ordenação na lista de operações
+  const operacoesOrdenadas = useMemo(() => {
+    if (!ordenacao.campo) return operacoes;
+
+    return [...operacoes].sort((a, b) => {
+      let valorA, valorB;
+
+      switch (ordenacao.campo) {
+        case 'ticker':
+          valorA = a.ticker || a.nome || '';
+          valorB = b.ticker || b.nome || '';
+          break;
+        case 'dataAbertura':
+          valorA = new Date(a.dataAbertura).getTime();
+          valorB = new Date(b.dataAbertura).getTime();
+          break;
+        case 'dataFechamento':
+          valorA = a.dataFechamento ? new Date(a.dataFechamento).getTime() : 0;
+          valorB = b.dataFechamento ? new Date(b.dataFechamento).getTime() : 0;
+          break;
+        case 'valorTotal':
+          valorA = a.valorTotal || a.preco * (a.quantidade || 1) || 0;
+          valorB = b.valorTotal || b.preco * (b.quantidade || 1) || 0;
+          break;
+        case 'resultado':
+          valorA = a.resultadoTotal || 0;
+          valorB = b.resultadoTotal || 0;
+          break;
+        default:
+          return 0;
+      }
+
+      // Comparação com suporte a ordenação ascendente e descendente
+      if (typeof valorA === 'string' && typeof valorB === 'string') {
+        return ordenacao.direcao === 'asc'
+          ? valorA.localeCompare(valorB, 'pt-BR', { sensitivity: 'base' })
+          : valorB.localeCompare(valorA, 'pt-BR', { sensitivity: 'base' });
+      } else {
+        return ordenacao.direcao === 'asc' ? valorA - valorB : valorB - valorA;
+      }
+    });
+  }, [operacoes, ordenacao]);
 
   // Função para enviar o formulário de fechamento
   const handleSubmitFechar = async (e) => {
@@ -978,22 +1035,62 @@ const OperacoesContent = () => {
                     <th className="px-2 py-3 text-center text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider whitespace-nowrap">
                       Sel
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider whitespace-nowrap">Ticker</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider whitespace-nowrap">Abertura</th>
+                    <th
+                      className="px-4 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider whitespace-nowrap cursor-pointer"
+                      onClick={() => handleSort('ticker')}
+                    >
+                      <div className="flex items-center">
+                        Ticker
+                        {ordenacao.campo === 'ticker' && (
+                          <span className="ml-1 text-[var(--primary)]">
+                            {ordenacao.direcao === 'asc' ? '▲' : '▼'}
+                          </span>
+                        )}
+                      </div>
+                    </th>
+                    <th
+                      className="px-4 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider whitespace-nowrap cursor-pointer"
+                      onClick={() => handleSort('dataAbertura')}
+                    >
+                      <div className="flex items-center">
+                        Abertura
+                        {ordenacao.campo === 'dataAbertura' && (
+                          <span className="ml-1 text-[var(--primary)]">
+                            {ordenacao.direcao === 'asc' ? '▲' : '▼'}
+                          </span>
+                        )}
+                      </div>
+                    </th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider whitespace-nowrap">Tipo</th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider whitespace-nowrap">Direção</th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider whitespace-nowrap">Strike</th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider whitespace-nowrap">Preço</th>
                     <th className="px-3 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider whitespace-nowrap">Qtde</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider whitespace-nowrap">Valor Total</th>
+                    <th
+                      className="px-4 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider whitespace-nowrap"
+                    >
+                      Valor Total
+                    </th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider whitespace-nowrap">Margem</th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider whitespace-nowrap">Status</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider whitespace-nowrap">Resultado</th>
+                    <th
+                      className="px-4 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider whitespace-nowrap cursor-pointer"
+                      onClick={() => handleSort('resultado')}
+                    >
+                      <div className="flex items-center">
+                        Resultado
+                        {ordenacao.campo === 'resultado' && (
+                          <span className="ml-1 text-[var(--primary)]">
+                            {ordenacao.direcao === 'asc' ? '▲' : '▼'}
+                          </span>
+                        )}
+                      </div>
+                    </th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider whitespace-nowrap">Ações</th>
                   </tr>
                 </thead>
                 <tbody className="bg-[var(--surface-card)] divide-y divide-[var(--surface-border)]">
-                  {operacoes.map(op => (
+                  {operacoesOrdenadas.map(op => (
                     <tr 
                       key={op._id} 
                       className={`hover:bg-[var(--surface-secondary)] dark:hover:bg-[var(--surface-tertiary)] ${

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
+import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, PieChart, Pie, Cell, ResponsiveContainer, ReferenceLine } from 'recharts';
 import NavBar from '@/components/NavBar';
 
 export default function RelatoriosPage() {
@@ -12,8 +12,6 @@ export default function RelatoriosPage() {
   const [error, setError] = useState(null);
   const [periodo, setPeriodo] = useState('ultimos3meses');
   const [activeTab, setActiveTab] = useState('desempenho');
-  const [mesSelecionado, setMesSelecionado] = useState(null);
-  const [showDetalhesMes, setShowDetalhesMes] = useState(false);
   const [mesEspecificoSelecionado, setMesEspecificoSelecionado] = useState('abril');
   const [anoEspecificoSelecionado, setAnoEspecificoSelecionado] = useState(new Date().getFullYear().toString());
   
@@ -111,20 +109,7 @@ export default function RelatoriosPage() {
     return data.toLocaleDateString('pt-BR');
   };
   
-  // Manipular clique em uma barra do gráfico
-  const handleBarClick = (data) => {
-    if (data && data.activePayload && data.activePayload.length > 0) {
-      const mes = data.activePayload[0].payload.mes;
-      setMesSelecionado(mes);
-      setShowDetalhesMes(true);
-    }
-  };
-  
-  // Fechar o modal de detalhes do mês
-  const fecharDetalhesMes = () => {
-    setShowDetalhesMes(false);
-    setMesSelecionado(null);
-  };
+  // Funções de detalhes por mês foram removidas
   
   // Função para formatar valores monetários
   const formatarMoeda = (valor) => {
@@ -440,55 +425,83 @@ export default function RelatoriosPage() {
           {activeTab === 'desempenho' && (
             <div className="grid grid-cols-1 gap-6">
               {/* Gráfico de Lucro Acumulado */}
-              <div className="bg-white p-4 rounded-lg shadow">
-                <h3 className="text-lg font-semibold text-gray-800 mb-4">Lucro Acumulado</h3>
-                <div className="h-64">
+              <div className="bg-[var(--surface-card)] p-4 rounded-lg shadow">
+                <h3 className="text-lg font-semibold text-[var(--text-primary)] mb-4">Lucro Acumulado</h3>
+                <div className="h-80">
                   {dashboardData.lucroAcumulado && Array.isArray(dashboardData.lucroAcumulado) && dashboardData.lucroAcumulado.length > 0 ? (
                     <ResponsiveContainer width="100%" height="100%">
-                      <LineChart 
+                      <LineChart
                         data={dashboardData.lucroAcumulado}
                         margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
                       >
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis 
-                          dataKey="data" 
-                          tick={{fontSize: 10}}
+                        <CartesianGrid strokeDasharray="3 3" stroke="var(--surface-border)" />
+                        <XAxis
+                          dataKey="data"
+                          tick={{fontSize: 10, fill: 'var(--text-secondary)'}}
                           interval="preserveEnd"
                           tickFormatter={(value) => {
                             if (!value || typeof value !== 'string') return '';
                             const parts = value.split('/');
                             return parts.length >= 2 ? `${parts[0]}/${parts[1]}` : value;
                           }}
+                          stroke="var(--text-tertiary)"
                         />
-                        <YAxis 
+                        <YAxis
                           tickFormatter={(value) => {
                             if (typeof value !== 'number') return value;
                             if (Math.abs(value) >= 1000) {
                               return `${(value / 1000).toFixed(1)}k`;
                             }
                             return value;
-                          }} 
+                          }}
+                          stroke="var(--text-tertiary)"
+                          tick={{fill: 'var(--text-secondary)'}}
                         />
-                        <Tooltip 
-                          formatter={(value) => [formatarValorAbreviado(value), 'Lucro Acumulado']}
-                          labelFormatter={(label) => typeof label === 'string' ? `Data: ${label}` : 'Data: -'}
+                        <Tooltip
+                          formatter={(value, name, props) => {
+                            // Formatar o valor monetário
+                            const formattedValue = formatarMoeda(value);
+
+                            // Retornar um array com o valor formatado e o nome da série
+                            return [formattedValue, 'Lucro Acumulado'];
+                          }}
+                          labelFormatter={(label) => {
+                            // Extrair informações adicionais do ponto de dados
+                            const dataPoint = dashboardData.lucroAcumulado.find(item => item.data === label);
+                            if (dataPoint) {
+                              return [
+                                `Data: ${label}`,
+                                `Operação: ${dataPoint.operacao || 'N/A'}`,
+                                dataPoint.idVisual ? `ID: ${dataPoint.idVisual}` : ''
+                              ].filter(Boolean).join('\n');
+                            }
+                            return `Data: ${label}`;
+                          }}
+                          contentStyle={{
+                            backgroundColor: 'var(--surface-card)',
+                            border: '1px solid var(--surface-border)',
+                            borderRadius: '4px',
+                            color: 'var(--text-primary)'
+                          }}
                         />
-                        <Legend />
-                        <Line 
-                          type="monotone" 
-                          dataKey="saldo" 
-                          stroke="#16a34a" 
-                          name="Lucro Acumulado" 
+                        <Legend wrapperStyle={{color: 'var(--text-primary)'}} />
+                        <Line
+                          type="monotone"
+                          dataKey="saldo"
+                          stroke="var(--primary)"
+                          name="Lucro Acumulado"
                           strokeWidth={2}
-                          dot={{r: 2}}
-                          activeDot={{r: 5}}
+                          dot={{r: 2, fill: 'var(--primary)'}}
+                          activeDot={{r: 5, fill: 'var(--primary)'}}
                           isAnimationActive={false}
                         />
+                        {/* Linha de referência no zero */}
+                        <ReferenceLine y={0} stroke="var(--text-tertiary)" strokeDasharray="3 3" />
                       </LineChart>
                     </ResponsiveContainer>
                   ) : (
                     <div className="flex items-center justify-center h-full">
-                      <p className="text-gray-500 text-center">
+                      <p className="text-[var(--text-secondary)] text-center">
                         Não há dados de lucro acumulado para exibir neste período.<br />
                         Feche algumas operações para visualizar o gráfico.
                       </p>
@@ -496,78 +509,14 @@ export default function RelatoriosPage() {
                   )}
                 </div>
               </div>
-              
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Gráfico de Resultado por Mês */}
-                <div className="bg-white p-4 rounded-lg shadow">
-                  <h3 className="text-lg font-semibold text-gray-800 mb-4">Resultado por Mês</h3>
-                  <div className="h-64">
-                    {dashboardData.resultadoPorMes && dashboardData.resultadoPorMes.length > 0 ? (
-                      <>
-                        <p className="text-xs text-gray-500 mb-2 text-center">Clique nas barras para ver detalhes das operações do mês</p>
-                        <ResponsiveContainer width="100%" height="90%">
-                          <BarChart data={dashboardData.resultadoPorMes} onClick={handleBarClick}>
-                            <CartesianGrid strokeDasharray="3 3" />
-                            <XAxis dataKey="mes" />
-                            <YAxis 
-                              tickFormatter={(value) => {
-                                if (Math.abs(value) >= 1000) {
-                                  return `${(value / 1000).toFixed(1)}k`;
-                                }
-                                return value;
-                              }}
-                            />
-                            <Tooltip formatter={(value) => [formatarValorAbreviado(value), 'Resultado']} />
-                            <Legend />
-                            <Bar 
-                              dataKey="resultado" 
-                              fill="#3b82f6" 
-                              name="Resultado" 
-                              isAnimationActive={false}
-                              cursor="pointer"
-                            />
-                          </BarChart>
-                        </ResponsiveContainer>
-                      </>
-                    ) : (
-                      <div className="flex items-center justify-center h-full">
-                        <p className="text-gray-500 text-center">
-                          Não há dados de resultados para exibir neste período.<br />
-                          Feche algumas operações para visualizar o gráfico.
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-                
-                {/* Gráfico de Quantidade de Operações por Mês */}
-                <div className="bg-white p-4 rounded-lg shadow">
-                  <h3 className="text-lg font-semibold text-gray-800 mb-4">Operações por Mês</h3>
-                  <div className="h-64">
-                    {dashboardData.operacoesPorMes && dashboardData.operacoesPorMes.length > 0 ? (
-                      <ResponsiveContainer width="100%" height="100%">
-                        <BarChart data={dashboardData.operacoesPorMes}>
-                          <CartesianGrid strokeDasharray="3 3" />
-                          <XAxis dataKey="mes" />
-                          <YAxis />
-                          <Tooltip />
-                          <Legend />
-                          <Bar 
-                            dataKey="quantidade" 
-                            fill="#10b981" 
-                            name="Operações" 
-                            isAnimationActive={false}
-                          />
-                        </BarChart>
-                      </ResponsiveContainer>
-                    ) : (
-                      <div className="flex items-center justify-center h-full">
-                        <p className="text-gray-500 text-center">
-                          Não há dados de operações para exibir neste período.
-                        </p>
-                      </div>
-                    )}
-                  </div>
+
+              {/* Desempenho por mês (placeholder) */}
+              <div className="bg-[var(--surface-card)] p-4 rounded-lg shadow">
+                <div className="text-center p-6">
+                  <h3 className="text-lg font-semibold text-[var(--text-primary)] mb-4">Visualização de Gráficos Mensais</h3>
+                  <p className="text-[var(--text-secondary)]">
+                    Esta funcionalidade está temporariamente indisponível enquanto trabalhamos em melhorias.
+                  </p>
                 </div>
               </div>
             </div>
@@ -757,133 +706,7 @@ export default function RelatoriosPage() {
         </>
       )}
       
-      {/* Modal de Detalhes do Mês */}
-      {showDetalhesMes && dashboardData && mesSelecionado && (
-        <div className="fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center z-50 overflow-y-auto">
-          <div className="bg-white rounded-lg p-6 max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-bold text-gray-800">
-                Operações Fechadas em {mesSelecionado}
-              </h2>
-              <button 
-                onClick={fecharDetalhesMes}
-                className="text-gray-500 hover:text-gray-700"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-            
-            {dashboardData.detalhesPorMes && dashboardData.detalhesPorMes[mesSelecionado] ? (
-              <>
-                {/* Resumo do mês */}
-                <div className="mb-6 p-4 bg-blue-50 rounded-lg">
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <h3 className="text-lg font-semibold">Resumo do Mês</h3>
-                      <p className="text-sm text-gray-500">Total de operações fechadas: {dashboardData.detalhesPorMes[mesSelecionado].length}</p>
-                    </div>
-                    <div className="text-xl font-bold">
-                      <MoneyValueK 
-                        value={dashboardData.resultadoPorMes.find(m => m.mes === mesSelecionado)?.resultado}
-                        className={`text-xl font-bold ${
-                          dashboardData.resultadoPorMes.find(m => m.mes === mesSelecionado)?.resultado >= 0 
-                            ? 'text-green-600' 
-                            : 'text-red-600'
-                        }`}
-                      />
-                    </div>
-                  </div>
-                </div>
-                
-                {/* Tabela de operações */}
-                <div className="overflow-x-auto">
-                  <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-50">
-                      <tr>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ticker</th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo</th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Direção</th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Abertura</th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fechamento</th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Preço</th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Preço Fech.</th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Resultado</th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ROI</th>
-                      </tr>
-                    </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
-                      {dashboardData.detalhesPorMes[mesSelecionado].map((op, index) => (
-                        <tr key={op.id || index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                          <td className="px-4 py-3 whitespace-nowrap text-blue-600 font-medium">
-                            {op.ticker}
-                            {op.idVisual && <div className="text-xs text-gray-500">{op.idVisual}</div>}
-                          </td>
-                          <td className="px-4 py-3 whitespace-nowrap">
-                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-md text-sm font-medium ${
-                              op.tipo === 'CALL' 
-                              ? 'bg-blue-100 text-blue-800' 
-                              : 'bg-purple-100 text-purple-800'
-                            }`}>
-                              {op.tipo}
-                            </span>
-                          </td>
-                          <td className="px-4 py-3 whitespace-nowrap">
-                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-md text-sm font-medium ${
-                              op.direcao === 'COMPRA' 
-                              ? 'bg-green-100 text-green-800' 
-                              : 'bg-red-100 text-red-800'
-                            }`}>
-                              {op.direcao}
-                            </span>
-                          </td>
-                          <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
-                            {formatarData(op.dataAbertura)}
-                          </td>
-                          <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
-                            {formatarData(op.dataFechamento)}
-                          </td>
-                          <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
-                            <MoneyValue value={op.preco} className="text-sm text-gray-500" />
-                          </td>
-                          <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
-                            <MoneyValue value={op.precoFechamento} className="text-sm text-gray-500" />
-                          </td>
-                          <td className="px-4 py-3 whitespace-nowrap">
-                            <MoneyValue 
-                              value={op.resultado} 
-                              className={`font-semibold ${op.resultado >= 0 ? 'text-green-600' : 'text-red-600'}`} 
-                            />
-                          </td>
-                          <td className={`px-4 py-3 whitespace-nowrap font-semibold ${
-                            op.roi >= 0 ? 'text-green-600' : 'text-red-600'
-                          }`}>
-                            {op.roi}%
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </>
-            ) : (
-              <div className="text-center py-8">
-                <p className="text-[var(--text-secondary)]">Não há operações fechadas para o mês de {mesSelecionado}.</p>
-              </div>
-            )}
-            
-            <div className="mt-6 text-right">
-              <button
-                onClick={fecharDetalhesMes}
-                className="px-4 py-2 bg-[var(--surface-secondary)] text-[var(--text-primary)] rounded hover:bg-[var(--surface-tertiary)]"
-              >
-                Fechar
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Modal de Detalhes do Mês removido */}
       </div>
     </div>
   );

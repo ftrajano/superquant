@@ -23,7 +23,9 @@ export default function EditarOperacaoPage() {
     preco: '',
     quantidade: '1',
     margemUtilizada: '',
-    observacoes: ''
+    observacoes: '',
+    dataAbertura: '',
+    dataFechamento: ''
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -55,6 +57,13 @@ export default function EditarOperacaoPage() {
         console.log('Operação carregada:', data);
         setOperacao(data);
 
+        // Formatar datas para input type="date"
+        const formatarDataParaInput = (dataString) => {
+          if (!dataString) return '';
+          const data = new Date(dataString);
+          return data.toISOString().split('T')[0]; // Formato YYYY-MM-DD
+        };
+
         // Preencher o formulário com os dados da operação
         setFormData({
           ticker: data.ticker || '',
@@ -66,7 +75,9 @@ export default function EditarOperacaoPage() {
           margemUtilizada: data.margemUtilizada ? data.margemUtilizada.toString() : '',
           observacoes: data.observacoes || '',
           mesReferencia: data.mesReferencia,
-          anoReferencia: data.anoReferencia
+          anoReferencia: data.anoReferencia,
+          dataAbertura: formatarDataParaInput(data.dataAbertura),
+          dataFechamento: formatarDataParaInput(data.dataFechamento)
         });
       } catch (err) {
         console.error('Erro ao buscar operação:', err);
@@ -120,7 +131,10 @@ export default function EditarOperacaoPage() {
         preco: parseFloat(formData.preco),
         quantidade: parseInt(formData.quantidade),
         margemUtilizada: formData.margemUtilizada ? parseFloat(formData.margemUtilizada) : 0,
-        observacoes: formData.observacoes || ''
+        observacoes: formData.observacoes || '',
+        // Incluir datas apenas se foram fornecidas
+        ...(formData.dataAbertura && { dataAbertura: new Date(`${formData.dataAbertura}T12:00:00Z`) }),
+        ...(formData.dataFechamento && { dataFechamento: new Date(`${formData.dataFechamento}T12:00:00Z`) })
       };
 
       console.log('Enviando atualização:', operacaoAtualizada);
@@ -357,7 +371,49 @@ export default function EditarOperacaoPage() {
                 </div>
               </div>
 
-              {/* Informações complementares apenas para visualização */}
+              {/* Datas de Abertura e Fechamento */}
+              <div className="mb-6">
+                <h3 className="text-lg font-semibold text-[var(--text-primary)] mb-2">Datas da Operação</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="dataAbertura">
+                      Data de Abertura
+                    </label>
+                    <input
+                      id="dataAbertura"
+                      name="dataAbertura"
+                      type="date"
+                      className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                      value={formData.dataAbertura}
+                      onChange={handleChange}
+                    />
+                    <p className="text-xs text-[var(--text-secondary)] mt-1">
+                      Por padrão é a data de criação da operação
+                    </p>
+                  </div>
+                  
+                  {(operacao.status !== 'Aberta' || formData.dataFechamento) && (
+                    <div>
+                      <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="dataFechamento">
+                        Data de Fechamento
+                      </label>
+                      <input
+                        id="dataFechamento"
+                        name="dataFechamento"
+                        type="date"
+                        className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                        value={formData.dataFechamento}
+                        onChange={handleChange}
+                      />
+                      <p className="text-xs text-[var(--text-secondary)] mt-1">
+                        Por padrão é a data em que a operação foi fechada
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Informações complementares */}
               {operacao.status !== 'Aberta' && (
                 <div className="mb-6 p-4 bg-[var(--surface-secondary)] rounded border border-[var(--surface-border)]">
                   <h3 className="text-lg font-semibold text-[var(--text-primary)] mb-2">Informações de Fechamento</h3>
@@ -366,12 +422,6 @@ export default function EditarOperacaoPage() {
                       <p className="text-sm font-medium text-[var(--text-secondary)]">Status:</p>
                       <p className="text-sm">{operacao.status}</p>
                     </div>
-                    {operacao.dataFechamento && (
-                      <div>
-                        <p className="text-sm font-medium text-[var(--text-secondary)]">Data de Fechamento:</p>
-                        <p className="text-sm">{new Date(operacao.dataFechamento).toLocaleDateString('pt-BR')}</p>
-                      </div>
-                    )}
                     {operacao.precoFechamento && (
                       <div>
                         <p className="text-sm font-medium text-[var(--text-secondary)]">Preço de Fechamento:</p>

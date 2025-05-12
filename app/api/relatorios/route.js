@@ -40,259 +40,7 @@ const formatarMes = (data) => {
   return `${meses[mes]}/${ano.toString().slice(2)}`;
 };
 
-// Função que gera dados para o gráfico de resultado por mês e operações detalhadas
-const agruparResultadosPorMes = (operacoes) => {
-  console.log(`Recebidas ${operacoes.length} operações para processar`);
-  
-  // Se não temos operações, retornar arrays vazios
-  if (!operacoes || operacoes.length === 0) {
-    console.log('Sem operações, retornando dados vazios.');
-    return {
-      resumoPorMes: [],
-      detalhesPorMes: {},
-      lucroAcumulado: []
-    };
-  }
-  
-  // Para cada operação fechada, verificar se tem os dados necessários
-  // Em caso de ausência de dados, atribuir valores padrão
-  const dadosProcessados = operacoes.map(op => {
-    // Verificar status - aceitar tanto "Fechada" quanto "Parcialmente Fechada"
-    // Também aceitar operações que são resultado de fechamento parcial (têm operacaoOriginalId)
-    const isFechada = op.status === 'Fechada' || op.operacaoOriginalId || op.status === 'Parcialmente Fechada';
-    
-    if (!isFechada) {
-      console.log(`Operação ${op._id} não está fechada, status: ${op.status}`);
-      return null;
-    }
-    
-    // Operações que são resultados de fechamento parcial já têm seus próprios resultados
-    // Operações parcialmente fechadas não devem ser incluídas diretamente no cálculo,
-    // pois seus resultados já estão nas operações derivadas
-    if (op.status === 'Parcialmente Fechada' && !op.operacaoOriginalId) {
-      console.log(`Operação ${op._id} está parcialmente fechada, seus resultados já estão contabilizados em operações derivadas`);
-      return null;
-    }
-    
-    // Verificar dataFechamento
-    if (!op.dataFechamento) {
-      console.log(`Operação ${op._id} não tem dataFechamento, usando dataAbertura`);
-      // Se não tiver dataFechamento, usa dataAbertura
-      op.dataFechamento = op.dataAbertura;
-    }
-    
-    // Verificar resultadoTotal
-    if (op.resultadoTotal === undefined || op.resultadoTotal === null) {
-      console.log(`Operação ${op._id} não tem resultadoTotal, usando 0`);
-      // Se não tiver resultadoTotal, define como 0
-      op.resultadoTotal = 0;
-    }
-    
-    // Preparar informações sobre a origem da operação (se for resultado de fechamento parcial)
-    let origemInfo = '';
-    if (op.operacaoOriginalId) {
-      origemInfo = ` (Fechamento parcial de ${op.operacaoOriginalId})`;
-    }
-    
-    // Calcular ROI corretamente baseado no valor total de abertura
-    const valorTotalAbertura = op.valorTotal || (op.preco * (op.quantidade || 1));
-    const roi = valorTotalAbertura ? Math.round((op.resultadoTotal / valorTotalAbertura) * 100) : 0;
-    
-    return {
-      id: op._id.toString(),
-      ticker: op.ticker || op.nome || 'N/A', 
-      idVisual: op.idVisual,
-      tipo: op.tipo,
-      direcao: op.direcao,
-      preco: op.preco,
-      quantidade: op.quantidade || 1,
-      precoFechamento: op.precoFechamento,
-      dataAbertura: op.dataAbertura,
-      dataFechamento: op.dataFechamento,
-      resultado: op.resultadoTotal,
-      valorTotalAbertura: valorTotalAbertura,
-      valorTotalFechamento: op.valorTotalFechamento || (op.precoFechamento * (op.quantidade || 1)),
-      roi: roi,
-      operacaoOriginalId: op.operacaoOriginalId,
-      observacoes: (op.observacoes || '') + origemInfo
-    };
-  }).filter(item => item !== null);  // remove itens nulos
-  
-  console.log(`${dadosProcessados.length} operações válidas após filtragem`);
-  
-  // Se não temos dados processados válidos, retornar arrays vazios
-  if (dadosProcessados.length === 0) {
-    console.log('Sem operações processáveis, retornando dados vazios.');
-    return {
-      resumoPorMes: [],
-      detalhesPorMes: {},
-      lucroAcumulado: []
-    };
-  }
-  
-  // Agrupar por mês
-  const resultadosPorMes = {};
-  const operacoesPorMes = {};
-  
-  dadosProcessados.forEach(op => {
-    const data = new Date(op.dataFechamento);
-    const mes = data.getMonth();
-    const ano = data.getFullYear();
-    
-    // Formatar "Mmm/YY" (ex: "Abr/24")
-    const meses = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
-    const mesFormatado = `${meses[mes]}/${String(ano).slice(2)}`;
-    
-    // Inicializar arrays e contadores se não existirem
-    if (!resultadosPorMes[mesFormatado]) {
-      resultadosPorMes[mesFormatado] = 0;
-      operacoesPorMes[mesFormatado] = [];
-    }
-    
-    // Adicionar resultado ao total do mês
-    resultadosPorMes[mesFormatado] += op.resultado;
-    
-    // Adicionar operação completa ao array do mês
-    operacoesPorMes[mesFormatado].push(op);
-  });
-  
-  // Converter resumo para array e ordenar
-  const resumoPorMes = Object.entries(resultadosPorMes).map(([mes, valor]) => ({
-    mes, 
-    resultado: valor
-  })).sort((a, b) => {
-    const [mesA, anoA] = a.mes.split('/');
-    const [mesB, anoB] = b.mes.split('/');
-    
-    // Comparar anos primeiro
-    if (anoA !== anoB) {
-      return parseInt(anoA) - parseInt(anoB);
-    }
-    
-    // Se anos iguais, comparar meses
-    const mesesIndice = {
-      'Jan': 0, 'Fev': 1, 'Mar': 2, 'Abr': 3, 'Mai': 4, 'Jun': 5,
-      'Jul': 6, 'Ago': 7, 'Set': 8, 'Out': 9, 'Nov': 10, 'Dez': 11
-    };
-    
-    return mesesIndice[mesA] - mesesIndice[mesB];
-  });
-  
-  // Calcular dados para o gráfico de lucro acumulado
-  // Primeiro, ordenamos as operações por data de fechamento
-  const operacoesOrdenadas = [...dadosProcessados].sort((a, b) => {
-    return new Date(a.dataFechamento) - new Date(b.dataFechamento);
-  });
-  
-  // Agora criamos pontos de dados para o lucro acumulado ao longo do tempo
-  let saldoAcumulado = 0;
-  const lucroAcumulado = operacoesOrdenadas.map(op => {
-    saldoAcumulado += op.resultado;
-    
-    const data = new Date(op.dataFechamento);
-    // Formatar data como "DD/MM/YYYY"
-    const dataFormatada = `${String(data.getDate()).padStart(2, '0')}/${String(data.getMonth() + 1).padStart(2, '0')}/${data.getFullYear()}`;
-    
-    return {
-      data: dataFormatada,
-      dataCompleta: op.dataFechamento,
-      saldo: saldoAcumulado,
-      operacao: {
-        id: op.id,
-        ticker: op.ticker,
-        resultado: op.resultado
-      }
-    };
-  });
-  
-  // Ordenar operações dentro de cada mês por data de fechamento
-  Object.keys(operacoesPorMes).forEach(mes => {
-    operacoesPorMes[mes].sort((a, b) => 
-      new Date(a.dataFechamento) - new Date(b.dataFechamento)
-    );
-  });
-  
-  // Se não temos resultados, retornar arrays vazios
-  if (resumoPorMes.length === 0) {
-    console.log('Nenhum mês com dados, retornando dados vazios.');
-    return {
-      resumoPorMes: [],
-      detalhesPorMes: {},
-      lucroAcumulado: []
-    };
-  }
-  
-  console.log('Dados por mês gerados:', resumoPorMes);
-  console.log('Lucro acumulado gerado com', lucroAcumulado.length, 'pontos de dados');
-  console.log('Detalhes por mês disponíveis para:', Object.keys(operacoesPorMes));
-  
-  return {
-    resumoPorMes: resumoPorMes,
-    detalhesPorMes: operacoesPorMes,
-    lucroAcumulado: lucroAcumulado
-  };
-};
-
-// Função para agrupar quantidade de operações por mês (para todas as operações)
-const agruparOperacoesPorMes = (operacoes) => {
-  console.log('=== DEBUG: agruparOperacoesPorMes ===');
-  console.log(`Número de operações recebidas: ${operacoes.length}`);
-  
-  // Se não temos operações, retornamos um array vazio
-  if (operacoes.length === 0) {
-    console.log('Nenhuma operação encontrada para o período');
-    return [];
-  }
-  
-  // Registrar meses e anos disponíveis para debug
-  const mesesDisponiveis = new Set();
-  operacoes.forEach(op => {
-    if (op.dataAbertura) {
-      const data = new Date(op.dataAbertura);
-      const mesFormatado = formatarMes(data);
-      mesesDisponiveis.add(mesFormatado);
-    }
-  });
-  console.log('Meses disponíveis para operações:', [...mesesDisponiveis]);
-  
-  const mesesMap = {}; // {mes-ano: quantidade}
-  
-  // Garantir que todos os meses disponíveis estejam inicializados
-  mesesDisponiveis.forEach(mes => {
-    mesesMap[mes] = 0;
-  });
-  
-  // Contabilizar operações por mês de abertura
-  operacoes.forEach(op => {
-    if (!op.dataAbertura) {
-      console.log(`Operação ${op._id} ignorada: não tem dataAbertura`);
-      return;
-    }
-    
-    const data = new Date(op.dataAbertura);
-    const mesFormatado = formatarMes(data);
-    
-    mesesMap[mesFormatado] += 1;
-  });
-  
-  console.log('Contagem por mês:', mesesMap);
-  
-  // Converter para array para o gráfico
-  const resultado = Object.keys(mesesMap).map(mes => ({
-    mes,
-    quantidade: mesesMap[mes]
-  })).sort((a, b) => {
-    const [mesA, anoA] = a.mes.split('/');
-    const [mesB, anoB] = b.mes.split('/');
-    if (anoA !== anoB) return anoA - anoB;
-    const mesesIndice = {'Jan': 0, 'Fev': 1, 'Mar': 2, 'Abr': 3, 'Mai': 4, 'Jun': 5, 
-                        'Jul': 6, 'Ago': 7, 'Set': 8, 'Out': 9, 'Nov': 10, 'Dez': 11};
-    return mesesIndice[mesA] - mesesIndice[mesB];
-  });
-  
-  console.log('Resultado final de operações por mês:', resultado);
-  return resultado;
-};
+// As funções de agrupamento por mês foram removidas
 
 // GET - Buscar dados para relatórios
 export async function GET(request) {
@@ -652,34 +400,37 @@ export async function GET(request) {
     
     console.log(`Total de operações encontradas: ${todasOperacoes.length}, das quais ${operacoesFechadasPeriodo.length} estão fechadas`);
     
-    // === DADOS PARA O GRÁFICO DE RESULTADO POR MÊS ===
-    // Buscar apenas operações do usuário atual para o gráfico de resultados
-    const queryGrafico = {
-      userId: userId, // Apenas operações do usuário atual, não mostrar operações sem userId
-      $or: [
-        // Operações fechadas completamente
-        { status: 'Fechada' },
-        // Operações resultantes de fechamento parcial
-        { operacaoOriginalId: { $ne: null } }
-      ]
+    // === DADOS PARA OS GRÁFICOS ===
+
+    // Calcular lucro acumulado ordenando operações por data de fechamento
+    const operacoesOrdenadas = [...operacoesParaMetricas]
+      .filter(op => op.dataFechamento)
+      .sort((a, b) => new Date(a.dataFechamento) - new Date(b.dataFechamento));
+
+    let saldoAcumulado = 0;
+    const lucroAcumulado = operacoesOrdenadas.map(op => {
+      // Incrementar o saldo acumulado com o resultado da operação
+      saldoAcumulado += (op.resultadoTotal || 0);
+
+      // Formatar a data de fechamento para o gráfico
+      const dataFechamento = new Date(op.dataFechamento);
+      const dataFormatada = `${dataFechamento.getDate().toString().padStart(2, '0')}/${(dataFechamento.getMonth() + 1).toString().padStart(2, '0')}/${dataFechamento.getFullYear()}`;
+
+      return {
+        data: dataFormatada,
+        saldo: saldoAcumulado,
+        operacao: op.ticker || op.nome,
+        idVisual: op.idVisual
+      };
+    });
+
+    // Valores para manter compatibilidade com o frontend
+    const resultadoPorMes = {
+      resumoPorMes: [],
+      detalhesPorMes: {},
+      lucroAcumulado: []
     };
-    
-    let operacoesParaGrafico = [];
-    try {
-      operacoesParaGrafico = await Operacao.find(queryGrafico).lean();
-      console.log(`Operações fechadas para o gráfico: ${operacoesParaGrafico.length}`);
-    } catch (dbError) {
-      console.error('Erro ao buscar operações para o gráfico:', dbError);
-      // Continuar com um array vazio em vez de falhar completamente
-      console.log('Continuando com array vazio para operações do gráfico');
-    }
-    
-    // Gerar dados para o gráfico usando operações fechadas e operações de fechamento parcial
-    const resultadoPorMes = agruparResultadosPorMes(operacoesParaGrafico);
-    console.log("Utilizando dados processados para o gráfico");
-    
-    // Para quantidade de operações por mês, usamos todas as operações do período selecionado
-    const operacoesPorMes = agruparOperacoesPorMes(todasOperacoes);
+    const operacoesPorMes = [];
     
     // === RANKING DE OPERAÇÕES ===
     // Melhores operações
@@ -734,10 +485,13 @@ export async function GET(request) {
       mediaResultado,
       distribuicaoTipo,
       distribuicaoDirecao,
-      resultadoPorMes: resultadoPorMes.resumoPorMes,
-      operacoesPorMes,
-      detalhesPorMes: resultadoPorMes.detalhesPorMes,
-      lucroAcumulado: resultadoPorMes.lucroAcumulado || [],
+      // Dados vazios para gráficos mensais removidos
+      resultadoPorMes: [],
+      operacoesPorMes: [],
+      detalhesPorMes: {},
+      // Dados de lucro acumulado
+      lucroAcumulado: lucroAcumulado,
+      // Ranking de operações
       melhoresOperacoes,
       pioresOperacoes
     });

@@ -130,7 +130,7 @@ export async function POST(request, { params }) {
         valorTotal: valorAberturaFechado,
         dataAbertura: operacao.dataAbertura,
         status: 'Fechada',
-        dataFechamento: new Date(),
+        dataFechamento: new Date(new Date().toISOString().split('T')[0] + 'T12:00:00Z'),
         precoFechamento: parseFloat(precoFechamento),
         valorTotalFechamento: valorFechamentoFechado,
         resultadoTotal: resultadoFechado,
@@ -180,7 +180,7 @@ export async function POST(request, { params }) {
         { 
           $set: {
             status: 'Fechada',
-            dataFechamento: new Date(),
+            dataFechamento: new Date(new Date().toISOString().split('T')[0] + 'T12:00:00Z'),
             precoFechamento: parseFloat(precoFechamento),
             valorTotal: valorTotalAbertura,
             valorTotalFechamento: valorTotalFechamento,
