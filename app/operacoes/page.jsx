@@ -48,6 +48,7 @@ const OperacoesContent = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showForm, setShowForm] = useState(false);
+  const [tickerPrefix, setTickerPrefix] = useState('BOVA'); // Novo estado para o prefixo do ticker
   const [formData, setFormData] = useState({
     ticker: '',
     tipo: 'CALL',
@@ -159,6 +160,11 @@ const OperacoesContent = () => {
   // Alternar entre meses
   const handleTabChange = (mes) => {
     router.push(`/operacoes?mes=${mes}&ano=${anoAtivo}`);
+  };
+  
+  // Atualizar o prefixo do ticker
+  const handlePrefixChange = (prefix) => {
+    setTickerPrefix(prefix);
   };
   
   // Alternar entre anos
@@ -412,7 +418,8 @@ const OperacoesContent = () => {
         mesAtivo;
       
       const novaOperacao = {
-        ticker: formData.ticker.trim(),
+        // Concatenar o prefixo ao ticker apenas se não for "Outros"
+        ticker: tickerPrefix !== 'Outros' ? tickerPrefix + formData.ticker.trim() : formData.ticker.trim(),
         mesReferencia: mesDaOperacao,
         anoReferencia: anoAtivo,
         tipo: formData.tipo,
@@ -566,9 +573,9 @@ const OperacoesContent = () => {
               
               {/* Resumo da operação */}
               {precoFechamento && (
-                <div className="mb-4 p-3 bg-blue-50 rounded-md">
-                  <h3 className="font-medium text-blue-800 mb-1">Resumo</h3>
-                  <div className="text-sm">
+                <div className="mb-4 p-3 bg-blue-50 dark:bg-[#1B5E20] dark:bg-opacity-30 rounded-md">
+                  <h3 className="font-medium text-blue-800 dark:text-white mb-1">Resumo</h3>
+                  <div className="text-sm text-gray-800 dark:text-white">
                     <p>Preço de abertura: {formatarMoeda(operacaoParaFechar?.preco)}</p>
                     <p>Preço de fechamento: {formatarMoeda(parseFloat(precoFechamento))}</p>
                     <p>Quantidade: {fechamentoParcial ? quantidadeFechar : (operacaoParaFechar?.quantidade || 1)}</p>
@@ -579,8 +586,8 @@ const OperacoesContent = () => {
                           ((operacaoParaFechar?.direcao === 'COMPRA' 
                             ? parseFloat(precoFechamento) - operacaoParaFechar?.preco 
                             : operacaoParaFechar?.preco - parseFloat(precoFechamento)) > 0)
-                            ? 'text-green-600' 
-                            : 'text-red-600'
+                            ? 'text-green-600 dark:text-green-400' 
+                            : 'text-red-600 dark:text-red-400'
                         }>
                           {formatarMoeda(
                             (operacaoParaFechar?.direcao === 'COMPRA' 
@@ -630,13 +637,23 @@ const OperacoesContent = () => {
         <div className="flex space-x-2">
           <Link 
             href="/margem"
-            className="btn btn-primary px-4 py-2 rounded"
+            className="bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white dark:text-black font-bold px-4 py-2 rounded"
+            style={{
+              backgroundColor: "var(--primary)",
+              color: "white",
+              fontFamily: "var(--font-geist-sans, Arial, Helvetica, sans-serif)"
+            }}
           >
             Controle de Margem
           </Link>
           <button 
             onClick={() => setShowForm(!showForm)}
-            className="btn btn-primary px-4 py-2 rounded"
+            className="bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white dark:text-black font-bold px-4 py-2 rounded"
+            style={{
+              backgroundColor: "var(--primary)",
+              color: "white",
+              fontFamily: "var(--font-geist-sans, Arial, Helvetica, sans-serif)"
+            }}
           >
             {showForm ? 'Cancelar' : '+ Nova Operação'}
           </button>
@@ -833,17 +850,67 @@ const OperacoesContent = () => {
         <div className="bg-[var(--surface-card)] p-6 rounded-lg shadow-md mb-6">
           <h2 className="text-xl font-semibold text-blue-800 mb-4">Nova Operação</h2>
           <form onSubmit={handleSubmit}>
+            {/* Seleção de prefixo de ticker */}
+            <div className="mb-4">
+              <label className="block text-gray-700 text-sm font-bold mb-2">
+                Tipo de Opção
+              </label>
+              <div className="flex space-x-4 items-center">
+                <div className="flex items-center">
+                  <input 
+                    type="radio" 
+                    id="prefixBOVA" 
+                    name="tickerPrefix" 
+                    className="w-4 h-4 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                    checked={tickerPrefix === 'BOVA'}
+                    onChange={() => handlePrefixChange('BOVA')}
+                  />
+                  <label htmlFor="prefixBOVA" className="ml-2 text-sm font-medium text-gray-700 cursor-pointer">
+                    BOVA
+                  </label>
+                </div>
+                
+                <div className="flex items-center">
+                  <input 
+                    type="radio" 
+                    id="prefixSMAL" 
+                    name="tickerPrefix" 
+                    className="w-4 h-4 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                    checked={tickerPrefix === 'SMAL'}
+                    onChange={() => handlePrefixChange('SMAL')}
+                  />
+                  <label htmlFor="prefixSMAL" className="ml-2 text-sm font-medium text-gray-700 cursor-pointer">
+                    SMAL
+                  </label>
+                </div>
+                
+                <div className="flex items-center">
+                  <input 
+                    type="radio" 
+                    id="prefixOutros" 
+                    name="tickerPrefix" 
+                    className="w-4 h-4 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                    checked={tickerPrefix === 'Outros'}
+                    onChange={() => handlePrefixChange('Outros')}
+                  />
+                  <label htmlFor="prefixOutros" className="ml-2 text-sm font-medium text-gray-700 cursor-pointer">
+                    Outros
+                  </label>
+                </div>
+              </div>
+            </div>
+            
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
               <div>
                 <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="ticker">
-                  Ticker
+                  Ticker {tickerPrefix !== 'Outros' && `(será prefixado com ${tickerPrefix})`}
                 </label>
                 <input
                   id="ticker"
                   name="ticker"
                   type="text"
                   className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                  placeholder="Ex: PETR4"
+                  placeholder={tickerPrefix !== 'Outros' ? "Ex: A123" : "Ex: PETR4"}
                   value={formData.ticker}
                   onChange={handleChange}
                   required
@@ -978,7 +1045,12 @@ const OperacoesContent = () => {
             <div className="flex items-center justify-between">
               <button
                 type="submit"
-                className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+                className="bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white dark:text-black font-bold px-4 py-2 rounded"
+                style={{
+                  backgroundColor: "var(--primary)",
+                  color: "white",
+                  fontFamily: "var(--font-geist-sans, Arial, Helvetica, sans-serif)"
+                }}
                 disabled={isSubmitting}
               >
                 {isSubmitting ? 'Criando...' : 'Criar Operação'}
@@ -986,7 +1058,10 @@ const OperacoesContent = () => {
               <button 
                 type="button"
                 onClick={() => setShowForm(false)}
-                className="inline-block align-baseline font-bold text-sm text-blue-600 hover:text-blue-800"
+                className="bg-[var(--surface-tertiary)] text-[var(--text-primary)] px-4 py-2 rounded hover:bg-[var(--surface-tonal-hover)]"
+                style={{
+                  fontFamily: "var(--font-geist-sans, Arial, Helvetica, sans-serif)"
+                }}
               >
                 Cancelar
               </button>
@@ -1022,7 +1097,12 @@ const OperacoesContent = () => {
               </p>
               <button 
                 onClick={() => setShowForm(true)}
-                className="mt-4 inline-block btn btn-primary px-4 py-2 rounded"
+                className="mt-4 inline-block bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white dark:text-black font-bold px-4 py-2 rounded"
+                style={{
+                  backgroundColor: "var(--primary)",
+                  color: "white",
+                  fontFamily: "var(--font-geist-sans, Arial, Helvetica, sans-serif)"
+                }}
               >
                 Criar Nova Operação
               </button>

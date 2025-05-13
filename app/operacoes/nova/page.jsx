@@ -29,8 +29,12 @@ const NovaOperacaoContent = () => {
     direcao: 'COMPRA',
     strike: '',
     preco: '',
+    margemUtilizada: '',
     observacoes: ''
   });
+  
+  // Estado para os checkboxes de prefixos de ticker
+  const [tickerPrefix, setTickerPrefix] = useState('BOVA');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   
@@ -70,6 +74,11 @@ const NovaOperacaoContent = () => {
     }));
   };
   
+  // Atualizar o prefixo do ticker
+  const handlePrefixChange = (prefix) => {
+    setTickerPrefix(prefix);
+  };
+  
   // Enviar o formulário
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -101,10 +110,12 @@ const NovaOperacaoContent = () => {
         },
         body: JSON.stringify({
           ...formData,
-          ticker: formData.nome, // Usar nome como ticker
+          // Concatenar o prefixo ao ticker apenas se não for "Outros"
+          ticker: tickerPrefix !== 'Outros' ? tickerPrefix + formData.nome : formData.nome,
           anoReferencia: parseInt(formData.anoReferencia),
           strike: parseFloat(formData.strike),
           preco: parseFloat(formData.preco),
+          margemUtilizada: formData.margemUtilizada ? parseFloat(formData.margemUtilizada) : undefined,
         }),
       });
       
@@ -152,12 +163,62 @@ const NovaOperacaoContent = () => {
         {/* Formulário */}
         <Card>
           <form onSubmit={handleSubmit}>
+            {/* Seleção de prefixo de ticker */}
+            <div className="mb-4">
+              <label className="block text-text-secondary font-medium text-sm mb-2">
+                Tipo de Opção
+              </label>
+              <div className="flex space-x-4 items-center">
+                <div className="flex items-center">
+                  <input 
+                    type="radio" 
+                    id="prefixBOVA" 
+                    name="tickerPrefix" 
+                    className="w-4 h-4 text-primary focus:ring-primary cursor-pointer"
+                    checked={tickerPrefix === 'BOVA'}
+                    onChange={() => handlePrefixChange('BOVA')}
+                  />
+                  <label htmlFor="prefixBOVA" className="ml-2 text-sm font-medium text-text-primary cursor-pointer">
+                    BOVA
+                  </label>
+                </div>
+                
+                <div className="flex items-center">
+                  <input 
+                    type="radio" 
+                    id="prefixSMAL" 
+                    name="tickerPrefix" 
+                    className="w-4 h-4 text-primary focus:ring-primary cursor-pointer"
+                    checked={tickerPrefix === 'SMAL'}
+                    onChange={() => handlePrefixChange('SMAL')}
+                  />
+                  <label htmlFor="prefixSMAL" className="ml-2 text-sm font-medium text-text-primary cursor-pointer">
+                    SMAL
+                  </label>
+                </div>
+                
+                <div className="flex items-center">
+                  <input 
+                    type="radio" 
+                    id="prefixOutros" 
+                    name="tickerPrefix" 
+                    className="w-4 h-4 text-primary focus:ring-primary cursor-pointer"
+                    checked={tickerPrefix === 'Outros'}
+                    onChange={() => handlePrefixChange('Outros')}
+                  />
+                  <label htmlFor="prefixOutros" className="ml-2 text-sm font-medium text-text-primary cursor-pointer">
+                    Outros
+                  </label>
+                </div>
+              </div>
+            </div>
+            
             <Input
               id="nome"
               name="nome"
               type="text"
-              label="Ticker"
-              placeholder="Ex: PETR4"
+              label={`Ticker ${tickerPrefix !== 'Outros' ? `(será prefixado com ${tickerPrefix})` : ''}`}
+              placeholder={tickerPrefix !== 'Outros' ? "Ex: A123" : "Ex: PETR4"}
               value={formData.nome}
               onChange={handleChange}
               required
@@ -207,7 +268,7 @@ const NovaOperacaoContent = () => {
               />
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
               <Input
                 id="strike"
                 name="strike"
@@ -220,7 +281,7 @@ const NovaOperacaoContent = () => {
                 step="0.01"
                 min="0"
               />
-              
+
               <Input
                 id="preco"
                 name="preco"
@@ -230,6 +291,18 @@ const NovaOperacaoContent = () => {
                 value={formData.preco}
                 onChange={handleChange}
                 required
+                step="0.01"
+                min="0"
+              />
+
+              <Input
+                id="margemUtilizada"
+                name="margemUtilizada"
+                type="number"
+                label="Margem (opcional)"
+                placeholder="Ex: 500"
+                value={formData.margemUtilizada}
+                onChange={handleChange}
                 step="0.01"
                 min="0"
               />

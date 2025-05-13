@@ -470,7 +470,11 @@ export default function MargemPage() {
             <p className="text-[var(--text-secondary)] py-4">Nenhuma operação utilizando margem no momento.</p>
             <Link 
               href="/operacoes/nova"
-              className="mt-2 inline-block bg-[var(--primary)] text-white dark:text-black font-bold px-4 py-2 rounded hover:bg-[var(--primary-hover)]"
+              className="mt-2 inline-block bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white dark:text-black font-bold px-4 py-2 rounded"
+              style={{
+                backgroundColor: "var(--primary)",
+                color: "white"
+              }}
             >
               Criar Nova Operação
             </Link>

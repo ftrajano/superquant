@@ -12,19 +12,31 @@ const formatarOperacoesParaExibicao = (operacoes) => {
     .filter(op => op.margemUtilizada && op.margemUtilizada > 0) // Apenas operações com margem definida
     .map(op => {
       let valorMargem = 0;
-      
+
       if (op.margemUtilizada && op.margemUtilizada > 0) {
+        // Calcular o valor da margem considerando o status da operação
+        let margemAjustada = 0;
+
         if (op.status === 'Parcialmente Fechada') {
           const qtdTotal = op.quantidade || 1;
           const qtdRestante = qtdTotal - (op.quantidadeFechada || 0);
           // Calcular margem proporcional à quantidade restante
-          valorMargem = (op.margemUtilizada * qtdRestante) / qtdTotal;
+          margemAjustada = (op.margemUtilizada * qtdRestante) / qtdTotal;
         } else {
           // Se está totalmente aberta, usar o valor completo de margem
-          valorMargem = op.margemUtilizada;
+          margemAjustada = op.margemUtilizada;
+        }
+
+        // Ajustar o valor da margem com base na direção
+        if (op.direcao === 'COMPRA') {
+          // Ao comprar opções, adiciona valor à margem (positivo)
+          valorMargem = margemAjustada;
+        } else if (op.direcao === 'VENDA') {
+          // Ao vender opções, subtrai valor da margem (negativo)
+          valorMargem = -margemAjustada;
         }
       }
-      
+
       return {
         id: op._id,
         ticker: op.ticker,
@@ -32,7 +44,7 @@ const formatarOperacoesParaExibicao = (operacoes) => {
         direcao: op.direcao,
         status: op.status,
         quantidade: op.quantidade || 1,
-        quantidadeRestante: op.status === 'Parcialmente Fechada' 
+        quantidadeRestante: op.status === 'Parcialmente Fechada'
           ? (op.quantidade || 1) - (op.quantidadeFechada || 0)
           : (op.quantidade || 1),
         dataAbertura: op.dataAbertura,
@@ -53,15 +65,28 @@ const calcularMargemUtilizada = async (userId) => {
   operacoesAbertas.forEach(op => {
     // Usar o campo margemUtilizada explicitamente definido pelo usuário, se disponível
     if (op.margemUtilizada && op.margemUtilizada > 0) {
+      // Determinar se a margem deve ser adicionada ou subtraída com base na direção
+      const valorMargem = op.margemUtilizada;
+      let margemAjustada = 0;
+
       // Se a operação está parcialmente fechada, calcular a margem proporcional
       if (op.status === 'Parcialmente Fechada') {
         const qtdTotal = op.quantidade || 1;
         const qtdRestante = qtdTotal - (op.quantidadeFechada || 0);
         // Calcular margem proporcional à quantidade restante
-        margemUtilizada += (op.margemUtilizada * qtdRestante) / qtdTotal;
+        margemAjustada = (valorMargem * qtdRestante) / qtdTotal;
       } else {
         // Se está totalmente aberta, usar o valor completo de margem
-        margemUtilizada += op.margemUtilizada;
+        margemAjustada = valorMargem;
+      }
+
+      // Ajustar com base na direção
+      if (op.direcao === 'COMPRA') {
+        // Ao comprar opções, adiciona valor à margem disponível
+        margemUtilizada += margemAjustada;
+      } else if (op.direcao === 'VENDA') {
+        // Ao vender opções, subtrai valor da margem disponível
+        margemUtilizada -= margemAjustada;
       }
     }
   });
