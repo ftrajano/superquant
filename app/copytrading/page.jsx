@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect, Suspense, useMemo } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
@@ -39,6 +39,14 @@ const CopyTradingContent = () => {
   // Estados para seleção de cesta de operações
   const [cestalSelecionada, setCestaSeleccionada] = useState([]);
   const [mostraResumo, setMostraResumo] = useState(false);
+  
+  // Estados para ordenação
+  const [ordenacao, setOrdenacao] = useState({
+    campo: null,
+    direcao: 'asc',
+    campoPrimario: null,
+    direcaoPrimaria: 'asc'
+  });
   
   // Lista de meses para as abas
   const meses = [
@@ -115,15 +123,139 @@ const CopyTradingContent = () => {
     }
   };
   
+  const calcularValorOperacoesAbertas = () => {
+    // Filtra apenas operações abertas deste mês e ano
+    const operacoesAbertas = operacoes.filter(op => {
+      // Verificação básica de status
+      if (op.status !== 'Aberta') return false;
+      
+      // Filtrar pelo mês e ano específicos
+      return op.mesReferencia?.toLowerCase() === mesAtivo?.toLowerCase() && 
+             op.anoReferencia?.toString() === anoAtivo?.toString();
+    });
+    
+    // Calcula o valor total das operações abertas com base na direção
+    return operacoesAbertas.reduce((total, op) => {
+      // Para compras, consideramos o valor negativo, para vendas positivo
+      const valor = (op.direcao === 'COMPRA' ? -1 : 1) * (op.valorTotal || op.preco * (op.quantidade || 1) || 0);
+      return total + valor;
+    }, 0);
+  };
+  
   const calcularSaldoCesta = () => {
-    const operacoesDaCesta = operacoes.filter(op => cestalSelecionada.includes(op._id));
-    return operacoesDaCesta.reduce((total, op) => total + (op.resultadoTotal || 0), 0);
+    const operacoesDaCesta = operacoes.filter(op => 
+      cestalSelecionada.includes(op._id) && op.status === 'Aberta'
+    );
+    
+    // Calcula o valor total das operações abertas com base na direção
+    return operacoesDaCesta.reduce((total, op) => {
+      // Para compras, consideramos o valor negativo, para vendas positivo
+      const valor = (op.direcao === 'COMPRA' ? -1 : 1) * (op.valorTotal || op.preco * (op.quantidade || 1) || 0);
+      return total + valor;
+    }, 0);
   };
   
   const limparCesta = () => {
     setCestaSeleccionada([]);
     setMostraResumo(false);
   };
+  
+  // Função para ordenar operações
+  const handleSort = (campo) => {
+    setOrdenacao(prev => {
+      // Se o campo for o mesmo que já está ordenado, inverte a direção
+      if (prev.campo === campo) {
+        return {
+          ...prev,
+          direcao: prev.direcao === 'asc' ? 'desc' : 'asc'
+        };
+      }
+      
+      // Se for uma nova coluna, verifica se já temos uma ordenação primária
+      if (prev.campo && prev.campo !== campo) {
+        // Salva a ordenação atual como primária e define a nova como secundária
+        return {
+          campoPrimario: prev.campo,
+          direcaoPrimaria: prev.direcao,
+          campo,
+          direcao: 'asc'
+        };
+      }
+      
+      // Caso seja a primeira ordenação
+      return {
+        ...prev,
+        campo,
+        direcao: 'asc',
+        campoPrimario: null,
+        direcaoPrimaria: 'asc'
+      };
+    });
+  };
+  
+  // Função para aplicar a ordenação na lista de operações
+  const operacoesOrdenadas = useMemo(() => {
+    if (!ordenacao.campo) return operacoes;
+
+    return [...operacoes].sort((a, b) => {
+      // Compara pelo campo primário (se existir)
+      if (ordenacao.campoPrimario) {
+        let valorPrimarioA, valorPrimarioB;
+        
+        switch (ordenacao.campoPrimario) {
+          case 'tipo':
+            valorPrimarioA = a.tipo || '';
+            valorPrimarioB = b.tipo || '';
+            break;
+          case 'strike':
+            valorPrimarioA = a.strike || 0;
+            valorPrimarioB = b.strike || 0;
+            break;
+          default:
+            valorPrimarioA = 0;
+            valorPrimarioB = 0;
+        }
+        
+        // Se forem diferentes pelo critério primário, retorna a comparação
+        if (typeof valorPrimarioA === 'string' && typeof valorPrimarioB === 'string') {
+          const comparacao = ordenacao.direcaoPrimaria === 'asc'
+            ? valorPrimarioA.localeCompare(valorPrimarioB, 'pt-BR', { sensitivity: 'base' })
+            : valorPrimarioB.localeCompare(valorPrimarioA, 'pt-BR', { sensitivity: 'base' });
+          
+          if (comparacao !== 0) return comparacao;
+        } else if (valorPrimarioA !== valorPrimarioB) {
+          return ordenacao.direcaoPrimaria === 'asc' 
+            ? valorPrimarioA - valorPrimarioB 
+            : valorPrimarioB - valorPrimarioA;
+        }
+      }
+      
+      // Se são iguais pelo critério primário ou não há critério primário, compara pelo critério secundário
+      let valorA, valorB;
+
+      switch (ordenacao.campo) {
+        case 'tipo':
+          valorA = a.tipo || '';
+          valorB = b.tipo || '';
+          break;
+        case 'strike':
+          valorA = a.strike || 0;
+          valorB = b.strike || 0;
+          break;
+        default:
+          return 0;
+      }
+
+      // Comparação com suporte a ordenação ascendente e descendente
+      if (typeof valorA === 'string' && typeof valorB === 'string') {
+        return ordenacao.direcao === 'asc'
+          ? valorA.localeCompare(valorB, 'pt-BR', { sensitivity: 'base' })
+          : valorB.localeCompare(valorA, 'pt-BR', { sensitivity: 'base' });
+      } else {
+        return ordenacao.direcao === 'asc' ? valorA - valorB : valorB - valorA;
+      }
+    });
+  }, [operacoes, ordenacao]);
   
   // Formatar data
   const formatarData = (dataString) => {
@@ -178,40 +310,76 @@ const CopyTradingContent = () => {
       
       {/* Filtros e Ações */}
       <div className="mb-4 flex flex-wrap justify-between gap-4">
-        <div className="inline-flex shadow-sm rounded-md">
-          <button
-            type="button"
-            onClick={() => setStatusFiltro('Todos')}
-            className={`px-4 py-2 text-sm font-medium rounded-l-md ${
-              statusFiltro === 'Todos' 
-                ? 'bg-[var(--primary)] text-white dark:text-[var(--color-dark-900)]' 
-                : 'bg-[var(--surface-card)] text-[var(--text-secondary)] hover:bg-[var(--surface-secondary)]'
-            }`}
-          >
-            Todas
-          </button>
-          <button
-            type="button"
-            onClick={() => setStatusFiltro('Aberta')}
-            className={`px-4 py-2 text-sm font-medium ${
-              statusFiltro === 'Aberta' 
-                ? 'bg-[var(--primary)] text-white dark:text-[var(--color-dark-900)]' 
-                : 'bg-[var(--surface-card)] text-[var(--text-secondary)] hover:bg-[var(--surface-secondary)]'
-            }`}
-          >
-            Abertas
-          </button>
-          <button
-            type="button"
-            onClick={() => setStatusFiltro('Fechada')}
-            className={`px-4 py-2 text-sm font-medium rounded-r-md ${
-              statusFiltro === 'Fechada' 
-                ? 'bg-[var(--primary)] text-white dark:text-[var(--color-dark-900)]' 
-                : 'bg-[var(--surface-card)] text-[var(--text-secondary)] hover:bg-[var(--surface-secondary)]'
-            }`}
-          >
-            Fechadas
-          </button>
+        <div className="flex items-center space-x-4">
+          <div className="inline-flex shadow-sm rounded-md">
+            <button
+              type="button"
+              onClick={() => setStatusFiltro('Todos')}
+              className={`px-4 py-2 text-sm font-medium rounded-l-md ${
+                statusFiltro === 'Todos' 
+                  ? 'bg-[var(--primary)] text-white dark:text-[var(--color-dark-900)]' 
+                  : 'bg-[var(--surface-card)] text-[var(--text-secondary)] hover:bg-[var(--surface-secondary)]'
+              }`}
+            >
+              Todas
+            </button>
+            <button
+              type="button"
+              onClick={() => setStatusFiltro('Aberta')}
+              className={`px-4 py-2 text-sm font-medium ${
+                statusFiltro === 'Aberta' 
+                  ? 'bg-[var(--primary)] text-white dark:text-[var(--color-dark-900)]' 
+                  : 'bg-[var(--surface-card)] text-[var(--text-secondary)] hover:bg-[var(--surface-secondary)]'
+              }`}
+            >
+              Abertas
+            </button>
+            <button
+              type="button"
+              onClick={() => setStatusFiltro('Fechada')}
+              className={`px-4 py-2 text-sm font-medium rounded-r-md ${
+                statusFiltro === 'Fechada' 
+                  ? 'bg-[var(--primary)] text-white dark:text-[var(--color-dark-900)]' 
+                  : 'bg-[var(--surface-card)] text-[var(--text-secondary)] hover:bg-[var(--surface-secondary)]'
+              }`}
+            >
+              Fechadas
+            </button>
+          </div>
+          
+          {/* Valor das operações abertas no mês */}
+          <div className="flex items-center px-3 py-2 rounded shadow-sm bg-[var(--surface-card)]">
+            <div className="mr-2 text-xs text-[var(--text-secondary)]">Valor operações abertas:</div>
+            <div 
+              className="font-semibold text-sm"
+              style={{
+                color: calcularValorOperacoesAbertas() > 0 
+                  ? '#16a34a' 
+                  : calcularValorOperacoesAbertas() < 0 
+                    ? '#dc2626' 
+                    : '#6b7280'
+              }}
+            >
+              {formatarMoeda(calcularValorOperacoesAbertas())}
+            </div>
+          </div>
+          
+          {/* Valor das operações abertas selecionadas */}
+          <div className="flex items-center px-3 py-2 rounded shadow-sm bg-[var(--surface-card)]">
+            <div className="mr-2 text-xs text-[var(--text-secondary)]">Valor operações selecionadas:</div>
+            <div 
+              className="font-semibold text-sm"
+              style={{
+                color: calcularSaldoCesta() > 0 
+                  ? '#16a34a' 
+                  : calcularSaldoCesta() < 0 
+                    ? '#dc2626' 
+                    : '#6b7280'
+              }}
+            >
+              {formatarMoeda(calcularSaldoCesta())}
+            </div>
+          </div>
         </div>
         
         {/* Ações da Cesta */}
@@ -344,9 +512,43 @@ const CopyTradingContent = () => {
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">Ticker</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">Abertura</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">Tipo</th>
+                    <th 
+                      className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider cursor-pointer"
+                      onClick={() => handleSort('tipo')}
+                    >
+                      <div className="flex items-center">
+                        Tipo
+                        {ordenacao.campo === 'tipo' && (
+                          <span className="ml-1 text-[var(--primary)]">
+                            {ordenacao.direcao === 'asc' ? '▲' : '▼'}
+                          </span>
+                        )}
+                        {ordenacao.campoPrimario === 'tipo' && (
+                          <span className="ml-1 text-[var(--text-tertiary)]">
+                            {ordenacao.direcaoPrimaria === 'asc' ? '▲' : '▼'}
+                          </span>
+                        )}
+                      </div>
+                    </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">Direção</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">Strike</th>
+                    <th
+                      className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider cursor-pointer"
+                      onClick={() => handleSort('strike')}
+                    >
+                      <div className="flex items-center">
+                        Strike
+                        {ordenacao.campo === 'strike' && (
+                          <span className="ml-1 text-[var(--primary)]">
+                            {ordenacao.direcao === 'asc' ? '▲' : '▼'}
+                          </span>
+                        )}
+                        {ordenacao.campoPrimario === 'strike' && (
+                          <span className="ml-1 text-[var(--text-tertiary)]">
+                            {ordenacao.direcaoPrimaria === 'asc' ? '▲' : '▼'}
+                          </span>
+                        )}
+                      </div>
+                    </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">Preço</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">Qtde</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">Valor Total</th>
@@ -356,7 +558,7 @@ const CopyTradingContent = () => {
                   </tr>
                 </thead>
                 <tbody className="bg-[var(--surface-card)] divide-y divide-[var(--surface-border)]">
-                  {operacoes.map(op => (
+                  {operacoesOrdenadas.map(op => (
                     <tr 
                       key={op._id} 
                       className={`hover:bg-[var(--surface-secondary)] dark:hover:bg-[var(--surface-tertiary)] ${
@@ -436,7 +638,18 @@ const CopyTradingContent = () => {
                         {op.quantidade || '1'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm">
-                        {formatarMoeda((op.preco || 0) * (op.quantidade || 1))}
+                        {formatarMoeda(
+                          (op.direcao === 'COMPRA' ? -1 : 1) * 
+                          (op.valorTotal || (op.preco || 0) * (op.quantidade || 1))
+                        )}
+                        {op.status === 'Fechada' && op.precoFechamento && (
+                          <div className="text-xs text-[var(--text-tertiary)]">
+                            F: {formatarMoeda(
+                              (op.direcao === 'VENDA' ? -1 : 1) * 
+                              (op.valorTotalFechamento || op.precoFechamento * (op.quantidade || 1))
+                            )}
+                          </div>
+                        )}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <StatusBadge status={op.status} />

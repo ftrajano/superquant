@@ -77,7 +77,9 @@ const OperacoesContent = () => {
   // Estados para ordenação
   const [ordenacao, setOrdenacao] = useState({
     campo: null,
-    direcao: 'asc'
+    direcao: 'asc',
+    campoPrimario: null,
+    direcaoPrimaria: 'asc'
   });
   
   // Lista de meses para as abas
@@ -220,15 +222,23 @@ const OperacoesContent = () => {
   };
   
   const calcularSaldoCesta = () => {
-    const operacoesDaCesta = operacoes.filter(op => cestalSelecionada.includes(op._id));
-    return operacoesDaCesta.reduce((total, op) => total + (op.resultadoTotal || 0), 0);
+    const operacoesDaCesta = operacoes.filter(op => 
+      cestalSelecionada.includes(op._id) && op.status === 'Aberta'
+    );
+    
+    // Calcula o valor total das operações abertas com base na direção
+    return operacoesDaCesta.reduce((total, op) => {
+      // Para compras, consideramos o valor negativo, para vendas positivo
+      const valor = (op.direcao === 'COMPRA' ? -1 : 1) * (op.valorTotal || op.preco * (op.quantidade || 1) || 0);
+      return total + valor;
+    }, 0);
   };
   
   const calcularSaldoMesAtual = () => {
-    // Filtra apenas operações fechadas deste mês e ano (ou todas do ano, se mesAtivo for "todas")
-    const operacoesFechadas = operacoes.filter(op => {
+    // Filtra apenas operações abertas deste mês e ano (ou todas do ano, se mesAtivo for "todas")
+    const operacoesAbertas = operacoes.filter(op => {
       // Verificação básica de status
-      if (op.status !== 'Fechada') return false;
+      if (op.status !== 'Aberta') return false;
       
       // Se for "todas", considerar todas operações do ano
       if (mesAtivo === 'todas') {
@@ -240,8 +250,12 @@ const OperacoesContent = () => {
              op.anoReferencia?.toString() === anoAtivo?.toString();
     });
     
-    // Calcula o saldo total das operações fechadas
-    return operacoesFechadas.reduce((total, op) => total + (op.resultadoTotal || 0), 0);
+    // Calcula o valor total das operações abertas com base na direção
+    return operacoesAbertas.reduce((total, op) => {
+      // Para compras, consideramos o valor negativo, para vendas positivo
+      const valor = (op.direcao === 'COMPRA' ? -1 : 1) * (op.valorTotal || op.preco * (op.quantidade || 1) || 0);
+      return total + valor;
+    }, 0);
   };
   
   const limparCesta = () => {
@@ -251,10 +265,35 @@ const OperacoesContent = () => {
 
   // Função para ordenar operações
   const handleSort = (campo) => {
-    setOrdenacao(prev => ({
-      campo,
-      direcao: prev.campo === campo && prev.direcao === 'asc' ? 'desc' : 'asc'
-    }));
+    setOrdenacao(prev => {
+      // Se o campo for o mesmo que já está ordenado, inverte a direção
+      if (prev.campo === campo) {
+        return {
+          ...prev,
+          direcao: prev.direcao === 'asc' ? 'desc' : 'asc'
+        };
+      }
+      
+      // Se for uma nova coluna, verifica se já temos uma ordenação primária
+      if (prev.campo && prev.campo !== campo) {
+        // Salva a ordenação atual como primária e define a nova como secundária
+        return {
+          campoPrimario: prev.campo,
+          direcaoPrimaria: prev.direcao,
+          campo,
+          direcao: 'asc'
+        };
+      }
+      
+      // Caso seja a primeira ordenação
+      return {
+        ...prev,
+        campo,
+        direcao: 'asc',
+        campoPrimario: null,
+        direcaoPrimaria: 'asc'
+      };
+    });
   };
 
   // Função para aplicar a ordenação na lista de operações
@@ -262,9 +301,58 @@ const OperacoesContent = () => {
     if (!ordenacao.campo) return operacoes;
 
     return [...operacoes].sort((a, b) => {
+      // Compara pelo campo primário (se existir)
+      if (ordenacao.campoPrimario) {
+        let valorPrimarioA, valorPrimarioB;
+        
+        switch (ordenacao.campoPrimario) {
+          case 'tipo':
+            valorPrimarioA = a.tipo || '';
+            valorPrimarioB = b.tipo || '';
+            break;
+          case 'ticker':
+            valorPrimarioA = a.ticker || a.nome || '';
+            valorPrimarioB = b.ticker || b.nome || '';
+            break;
+          case 'dataAbertura':
+            valorPrimarioA = new Date(a.dataAbertura).getTime();
+            valorPrimarioB = new Date(b.dataAbertura).getTime();
+            break;
+          case 'strike':
+            valorPrimarioA = a.strike || 0;
+            valorPrimarioB = b.strike || 0;
+            break;
+          case 'resultado':
+            valorPrimarioA = a.resultadoTotal || 0;
+            valorPrimarioB = b.resultadoTotal || 0;
+            break;
+          default:
+            valorPrimarioA = 0;
+            valorPrimarioB = 0;
+        }
+        
+        // Se forem diferentes pelo critério primário, retorna a comparação
+        if (typeof valorPrimarioA === 'string' && typeof valorPrimarioB === 'string') {
+          const comparacao = ordenacao.direcaoPrimaria === 'asc'
+            ? valorPrimarioA.localeCompare(valorPrimarioB, 'pt-BR', { sensitivity: 'base' })
+            : valorPrimarioB.localeCompare(valorPrimarioA, 'pt-BR', { sensitivity: 'base' });
+          
+          if (comparacao !== 0) return comparacao;
+        } else if (valorPrimarioA !== valorPrimarioB) {
+          return ordenacao.direcaoPrimaria === 'asc' 
+            ? valorPrimarioA - valorPrimarioB 
+            : valorPrimarioB - valorPrimarioA;
+        }
+      }
+      
+      // Se são iguais pelo critério primário ou não há critério primário, compara pelo critério secundário
       let valorA, valorB;
 
       switch (ordenacao.campo) {
+        case 'tipo':
+          valorA = a.tipo || '';
+          valorB = b.tipo || '';
+          break;
         case 'ticker':
           valorA = a.ticker || a.nome || '';
           valorB = b.ticker || b.nome || '';
@@ -280,6 +368,10 @@ const OperacoesContent = () => {
         case 'valorTotal':
           valorA = a.valorTotal || a.preco * (a.quantidade || 1) || 0;
           valorB = b.valorTotal || b.preco * (b.quantidade || 1) || 0;
+          break;
+        case 'strike':
+          valorA = a.strike || 0;
+          valorB = b.strike || 0;
           break;
         case 'resultado':
           valorA = a.resultadoTotal || 0;
@@ -712,9 +804,9 @@ const OperacoesContent = () => {
             </button>
           </div>
           
-          {/* Saldo do mês atual */}
+          {/* Valor das operações abertas no mês */}
           <div className="flex items-center px-3 py-2 rounded shadow-sm bg-[var(--surface-card)]">
-            <div className="mr-2 text-xs text-[var(--text-secondary)]">Saldo do mês:</div>
+            <div className="mr-2 text-xs text-[var(--text-secondary)]">Valor operações abertas:</div>
             <div 
               className="font-semibold text-sm"
               style={{
@@ -729,9 +821,9 @@ const OperacoesContent = () => {
             </div>
           </div>
           
-          {/* Saldo da seleção */}
+          {/* Valor das operações abertas selecionadas */}
           <div className="flex items-center px-3 py-2 rounded shadow-sm bg-[var(--surface-card)]">
-            <div className="mr-2 text-xs text-[var(--text-secondary)]">Saldo seleção:</div>
+            <div className="mr-2 text-xs text-[var(--text-secondary)]">Valor operações selecionadas:</div>
             <div 
               className="font-semibold text-sm"
               style={{
@@ -1141,9 +1233,43 @@ const OperacoesContent = () => {
                         )}
                       </div>
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider whitespace-nowrap">Tipo</th>
+                    <th 
+                      className="px-4 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider whitespace-nowrap cursor-pointer"
+                      onClick={() => handleSort('tipo')}
+                    >
+                      <div className="flex items-center">
+                        Tipo
+                        {ordenacao.campo === 'tipo' && (
+                          <span className="ml-1 text-[var(--primary)]">
+                            {ordenacao.direcao === 'asc' ? '▲' : '▼'}
+                          </span>
+                        )}
+                        {ordenacao.campoPrimario === 'tipo' && (
+                          <span className="ml-1 text-[var(--text-tertiary)]">
+                            {ordenacao.direcaoPrimaria === 'asc' ? '▲' : '▼'}
+                          </span>
+                        )}
+                      </div>
+                    </th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider whitespace-nowrap">Direção</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider whitespace-nowrap">Strike</th>
+                    <th 
+                      className="px-4 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider whitespace-nowrap cursor-pointer"
+                      onClick={() => handleSort('strike')}
+                    >
+                      <div className="flex items-center">
+                        Strike
+                        {ordenacao.campo === 'strike' && (
+                          <span className="ml-1 text-[var(--primary)]">
+                            {ordenacao.direcao === 'asc' ? '▲' : '▼'}
+                          </span>
+                        )}
+                        {ordenacao.campoPrimario === 'strike' && (
+                          <span className="ml-1 text-[var(--text-tertiary)]">
+                            {ordenacao.direcaoPrimaria === 'asc' ? '▲' : '▼'}
+                          </span>
+                        )}
+                      </div>
+                    </th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider whitespace-nowrap">Preço</th>
                     <th className="px-3 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider whitespace-nowrap">Qtde</th>
                     <th
