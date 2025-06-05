@@ -94,12 +94,13 @@ export default function NavBar() {
             <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
               {status === 'authenticated' && (
                 <>
-                  <NavLink href="/">Dashboard</NavLink>
-                  <NavLink href="/operacoes">Minhas Operações</NavLink>
                   <NavLink href="/copytrading">CopyTrading</NavLink>
-                  <NavLink href="/relatorios">Relatórios</NavLink>
+                  <NavLink href="/">Dashboard</NavLink>
+                  <NavLink href="/historico">Histórico</NavLink>
                   <NavLink href="/margem">Margem</NavLink>
+                  <NavLink href="/operacoes">Minhas Operações</NavLink>
                   <NavLink href="/quant">Quant</NavLink>
+                  <NavLink href="/relatorios">Relatórios</NavLink>
                   
                   {/* Links de administração - apenas para admins */}
                   {session?.user?.role === 'admin' && (
@@ -194,12 +195,13 @@ export default function NavBar() {
         <div className="pt-2 pb-3 space-y-1">
           {status === 'authenticated' ? (
             <>
-              <MobileNavLink href="/">Dashboard</MobileNavLink>
-              <MobileNavLink href="/operacoes">Minhas Operações</MobileNavLink>
               <MobileNavLink href="/copytrading">CopyTrading</MobileNavLink>
-              <MobileNavLink href="/relatorios">Relatórios</MobileNavLink>
+              <MobileNavLink href="/">Dashboard</MobileNavLink>
+              <MobileNavLink href="/historico">Histórico</MobileNavLink>
               <MobileNavLink href="/margem">Margem</MobileNavLink>
+              <MobileNavLink href="/operacoes">Minhas Operações</MobileNavLink>
               <MobileNavLink href="/quant">Quant</MobileNavLink>
+              <MobileNavLink href="/relatorios">Relatórios</MobileNavLink>
               
               {/* Admin links para mobile */}
               {session?.user?.role === 'admin' && (

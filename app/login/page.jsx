@@ -97,7 +97,12 @@ export default function LoginPage() {
           </div>
         </form>
 
-        <div className="mt-4 text-center text-sm">
+        <div className="mt-4 text-center text-sm space-y-2">
+          <p className="text-text-secondary dark:text-text-secondary">
+            <Link href="/forgot-password" className="font-medium text-primary hover:text-primary-hover">
+              Esqueci minha senha
+            </Link>
+          </p>
           <p className="text-text-secondary dark:text-text-secondary">
             Não tem uma conta?{' '}
             <Link href="/cadastro" className="font-medium text-primary hover:text-primary-hover">

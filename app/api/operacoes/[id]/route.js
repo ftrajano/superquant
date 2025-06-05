@@ -1,6 +1,7 @@
 // app/api/operacoes/[id]/route.js
 import { connectToDatabase } from '@/lib/db/mongodb';
 import Operacao from '@/lib/models/Operacao';
+import HistoricoOperacao from '@/lib/models/HistoricoOperacao';
 import { NextResponse } from 'next/server';
 import mongoose from 'mongoose';
 import { getServerSession } from 'next-auth';
@@ -168,7 +169,17 @@ export async function DELETE(request, { params }) {
       );
     }
     
+    // Excluir a operação
     await Operacao.findByIdAndDelete(id);
+    
+    // Remover do histórico se existir
+    try {
+      await HistoricoOperacao.deleteOne({ operacaoId: id });
+      console.log('Registro removido do histórico para operação:', id);
+    } catch (historicoError) {
+      console.error('Erro ao remover do histórico:', historicoError);
+      // Não falhar a exclusão principal por causa do histórico
+    }
     
     return NextResponse.json({ success: true });
   } catch (error) {

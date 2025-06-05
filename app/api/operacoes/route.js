@@ -2,6 +2,7 @@
 import { connectToDatabase } from '@/lib/db/mongodb';
 import Operacao from '@/lib/models/Operacao';
 import User from '@/lib/models/User';
+import HistoricoOperacao from '@/lib/models/HistoricoOperacao';
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
@@ -329,6 +330,43 @@ export async function POST(request) {
     console.log('Salvando operação...');
     await novaOperacao.save();
     console.log('Operação salva com sucesso! ID:', novaOperacao._id);
+    
+    // Verificar se o usuário é modelo e registrar no histórico
+    console.log('Verificando se usuário é modelo. User ID:', session.user.id);
+    const usuario = await User.findById(session.user.id);
+    console.log('Usuário encontrado:', usuario ? { id: usuario._id, role: usuario.role, name: usuario.name } : 'null');
+    
+    if (usuario && usuario.role === 'modelo') {
+      console.log('Usuário é modelo, registrando no histórico...');
+      
+      try {
+        const historicoData = {
+          userId: session.user.id,
+          operacaoId: novaOperacao._id.toString(),
+          nome: operacaoData.nome,
+          tipo: operacaoData.tipo,
+          direcao: operacaoData.direcao,
+          quantidade: operacaoData.quantidade,
+          dataOperacao: novaOperacao.dataAbertura,
+          ticker: operacaoData.ticker,
+          strike: operacaoData.strike,
+          preco: operacaoData.preco,
+          mesReferencia: operacaoData.mesReferencia,
+          anoReferencia: operacaoData.anoReferencia
+        };
+        
+        console.log('Dados do histórico:', historicoData);
+        const novoHistorico = new HistoricoOperacao(historicoData);
+        await novoHistorico.save();
+        console.log('Operação registrada no histórico com sucesso! ID:', novoHistorico._id);
+      } catch (historicoError) {
+        console.error('Erro ao registrar no histórico:', historicoError);
+        console.error('Stack trace:', historicoError.stack);
+        // Não falhar a operação principal por causa do histórico
+      }
+    } else {
+      console.log('Usuário não é modelo, não registrando no histórico');
+    }
     
     return NextResponse.json(novaOperacao, { status: 201 });
   } catch (error) {
