@@ -10,6 +10,7 @@ export default function CadastroPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
@@ -32,19 +33,13 @@ export default function CadastroPage() {
         throw new Error(data.error || 'Erro ao criar conta');
       }
 
-      // Login automático após registro
-      const result = await signIn('credentials', {
-        redirect: false,
-        email,
-        password,
-      });
-
-      if (result.error) {
-        setError('Erro ao fazer login após cadastro');
-      } else {
-        router.replace('/');
-        router.refresh();
-      }
+      // Sucesso no cadastro
+      setSuccess(true);
+      
+      // Redirecionar para página inicial após 3 segundos
+      setTimeout(() => {
+        router.push('/');
+      }, 3000);
     } catch (error) {
       setError(error.message);
       console.error('Erro no cadastro:', error);
@@ -67,6 +62,38 @@ export default function CadastroPage() {
           </div>
         )}
 
+        {success && (
+          <div className="rounded-md bg-green-50 border border-green-200 p-4">
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <svg className="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <div className="ml-3">
+                <h3 className="text-sm font-medium text-green-800">
+                  Conta criada com sucesso!
+                </h3>
+                <div className="mt-2 text-sm text-green-700">
+                  <p>
+                    Enviamos um email de confirmação para <strong>{email}</strong>.
+                  </p>
+                  <p className="mt-1">
+                    <strong>Importante:</strong> Você precisa confirmar seu email antes de fazer login.
+                  </p>
+                  <p className="mt-1">
+                    Verifique sua caixa de entrada e clique no link de confirmação.
+                  </p>
+                  <p className="mt-2 text-xs">
+                    Redirecionando para a página inicial em alguns segundos...
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {!success && (
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="space-y-4">
             <div>
@@ -126,7 +153,9 @@ export default function CadastroPage() {
             </button>
           </div>
         </form>
+        )}
 
+        {!success && (
         <div className="mt-4 text-center text-sm">
           <p className="text-text-secondary dark:text-text-secondary">
             Já tem uma conta?{' '}
@@ -135,6 +164,7 @@ export default function CadastroPage() {
             </Link>
           </p>
         </div>
+        )}
       </div>
     </div>
   );

@@ -1,7 +1,9 @@
 import { NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
+import crypto from 'crypto';
 import { connectToDatabase } from '@/lib/db/mongodb';
 import User from '@/lib/models/User';
+import { sendEmailConfirmation } from '@/lib/resend';
 
 export async function POST(request) {
   try {
@@ -30,23 +32,44 @@ export async function POST(request) {
     // Hash da senha
     const hashedPassword = await bcrypt.hash(password, 10);
 
+    // Gerar token de confirmação de email
+    const emailConfirmToken = crypto.randomBytes(32).toString('hex');
+    const emailConfirmTokenExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 horas
+
     // Criar novo usuário
     const newUser = await User.create({
       name,
       email,
       password: hashedPassword,
-      role: 'user' // Por padrão, novos cadastros são usuários comuns
+      role: 'user',
+      emailConfirmed: false,
+      emailConfirmToken,
+      emailConfirmTokenExpiry
     });
+
+    // Enviar email de confirmação
+    try {
+      console.log('Tentando enviar email de confirmação para:', email);
+      const emailResult = await sendEmailConfirmation(email, name, emailConfirmToken);
+      console.log('Email enviado com sucesso:', emailResult);
+    } catch (emailError) {
+      console.error('Erro ao enviar email de confirmação:', emailError);
+      // Continue mesmo se o email falhar
+    }
 
     // Remover a senha do objeto de resposta
     const user = {
       id: newUser._id.toString(),
       name: newUser.name,
       email: newUser.email,
-      role: newUser.role
+      role: newUser.role,
+      emailConfirmed: newUser.emailConfirmed
     };
 
-    return NextResponse.json({ user }, { status: 201 });
+    return NextResponse.json({ 
+      user,
+      message: 'Usuário criado com sucesso! Verifique seu email para confirmar sua conta.'
+    }, { status: 201 });
   } catch (error) {
     console.error('Erro ao registrar usuário:', error);
     return NextResponse.json(

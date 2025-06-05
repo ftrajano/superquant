@@ -61,7 +61,8 @@ export async function POST(request) {
       name,
       email,
       password: hashedPassword,
-      role: 'admin'
+      role: 'admin',
+      emailConfirmed: true // Admin não precisa confirmar email
     });
 
     // Remover a senha do objeto de resposta

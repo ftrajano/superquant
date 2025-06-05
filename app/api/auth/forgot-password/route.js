@@ -2,6 +2,7 @@ import { connectToDatabase } from '@/lib/db/mongodb';
 import User from '@/lib/models/User';
 import { NextResponse } from 'next/server';
 import crypto from 'crypto';
+import { sendPasswordReset } from '@/lib/resend';
 
 export async function POST(request) {
   try {
@@ -38,19 +39,17 @@ export async function POST(request) {
       resetPasswordExpiry: resetTokenExpiry
     });
 
-    // TODO: Aqui você implementaria o envio de email
-    // Por enquanto, vamos apenas log do token para desenvolvimento
-    console.log(`Reset token para ${email}: ${resetToken}`);
-    console.log(`Link de reset: ${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/reset-password?token=${resetToken}`);
+    // Enviar email de reset
+    try {
+      await sendPasswordReset(user.email, user.name, resetToken);
+    } catch (emailError) {
+      console.error('Erro ao enviar email de reset:', emailError);
+      // Não falhar a operação por causa do email
+    }
 
     return NextResponse.json({
       success: true,
-      message: 'Se o email estiver cadastrado, você receberá um link para redefinir sua senha.',
-      // Em desenvolvimento, retornamos o token. REMOVER em produção!
-      ...(process.env.NODE_ENV === 'development' && { 
-        developmentToken: resetToken,
-        developmentLink: `${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/reset-password?token=${resetToken}`
-      })
+      message: 'Se o email estiver cadastrado, você receberá um link para redefinir sua senha.'
     });
 
   } catch (error) {
