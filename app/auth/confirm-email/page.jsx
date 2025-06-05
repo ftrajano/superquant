@@ -1,11 +1,20 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import NavBar from '@/components/NavBar';
 
-export default function ConfirmEmailPage() {
+// Componente de carregamento
+const LoadingUI = () => (
+  <div className="text-center py-8">
+    <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4"></div>
+    <p className="text-[var(--text-secondary)]">Carregando...</p>
+  </div>
+);
+
+// Componente principal com useSearchParams
+function ConfirmEmailContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [status, setStatus] = useState('confirming'); // confirming, success, error
@@ -122,5 +131,14 @@ export default function ConfirmEmailPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+// Componente wrapper com Suspense
+export default function ConfirmEmailPage() {
+  return (
+    <Suspense fallback={<LoadingUI />}>
+      <ConfirmEmailContent />
+    </Suspense>
   );
 }
