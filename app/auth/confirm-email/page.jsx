@@ -75,7 +75,7 @@ export default function ConfirmEmailPage() {
                 <div className="space-y-3">
                   <Link
                     href="/login"
-                    className="block w-full bg-[var(--primary)] text-white py-2 px-4 rounded hover:bg-[var(--primary-dark)] transition-colors"
+                    className="btn btn-primary block w-full text-center py-2 px-4 rounded transition-colors"
                   >
                     Fazer Login
                   </Link>
