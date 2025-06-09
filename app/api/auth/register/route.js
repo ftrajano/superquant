@@ -42,7 +42,7 @@ export async function POST(request) {
       email,
       password: hashedPassword,
       role: 'user',
-      emailConfirmed: false,
+      emailConfirmed: false, // Explicitamente false para novos usuários
       emailConfirmToken,
       emailConfirmTokenExpiry
     });

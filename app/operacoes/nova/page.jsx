@@ -200,6 +200,20 @@ const NovaOperacaoContent = () => {
                 <div className="flex items-center">
                   <input 
                     type="radio" 
+                    id="prefixIBOV" 
+                    name="tickerPrefix" 
+                    className="w-4 h-4 text-primary focus:ring-primary cursor-pointer"
+                    checked={tickerPrefix === 'IBOV'}
+                    onChange={() => handlePrefixChange('IBOV')}
+                  />
+                  <label htmlFor="prefixIBOV" className="ml-2 text-sm font-medium text-text-primary cursor-pointer">
+                    IBOV
+                  </label>
+                </div>
+                
+                <div className="flex items-center">
+                  <input 
+                    type="radio" 
                     id="prefixOutros" 
                     name="tickerPrefix" 
                     className="w-4 h-4 text-primary focus:ring-primary cursor-pointer"

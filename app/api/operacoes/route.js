@@ -265,21 +265,10 @@ export async function POST(request) {
       );
     }
     
-    // Calcular a margem utilizada automaticamente baseada na direção
+    // Usar margem apenas se foi informada explicitamente
     let margemUtilizada = 0;
-    if (data.margemUtilizada) {
-      // Se uma margem específica foi fornecida, usar esse valor
+    if (data.margemUtilizada && !isNaN(parseFloat(data.margemUtilizada))) {
       margemUtilizada = parseFloat(data.margemUtilizada);
-    } else {
-      // Calcular com base na direção (COMPRA/VENDA)
-      const valorOperacao = preco * quantidade;
-      if (data.direcao === 'VENDA') {
-        // Quando vende opção, abate valor da margem (valor negativo)
-        margemUtilizada = -valorOperacao;
-      } else if (data.direcao === 'COMPRA') {
-        // Quando compra opção, adiciona valor à margem (valor positivo)
-        margemUtilizada = valorOperacao;
-      }
     }
 
     const operacaoData = {
@@ -293,7 +282,7 @@ export async function POST(request) {
       preco: preco,
       quantidade: quantidade,
       valorTotal: preco * quantidade,
-      margemUtilizada: Math.abs(margemUtilizada), // Armazenar como valor absoluto
+      margemUtilizada: margemUtilizada,
       observacoes: data.observacoes || '',
       userId: session.user.id,
     };

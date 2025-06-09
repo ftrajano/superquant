@@ -36,10 +36,10 @@ export default function CadastroPage() {
       // Sucesso no cadastro
       setSuccess(true);
       
-      // Redirecionar para página inicial após 3 segundos
+      // Redirecionar para página inicial após 20 segundos
       setTimeout(() => {
         router.push('/');
-      }, 3000);
+      }, 20000);
     } catch (error) {
       setError(error.message);
       console.error('Erro no cadastro:', error);
@@ -85,8 +85,16 @@ export default function CadastroPage() {
                     Verifique sua caixa de entrada e clique no link de confirmação.
                   </p>
                   <p className="mt-2 text-xs">
-                    Redirecionando para a página inicial em alguns segundos...
+                    Redirecionando para a página inicial em 20 segundos...
                   </p>
+                  <div className="mt-3">
+                    <Link 
+                      href="/login"
+                      className="inline-flex items-center px-3 py-1 text-xs font-medium text-green-800 bg-green-100 hover:bg-green-200 rounded border border-green-300 transition-colors"
+                    >
+                      Ir para Login agora
+                    </Link>
+                  </div>
                 </div>
               </div>
             </div>
