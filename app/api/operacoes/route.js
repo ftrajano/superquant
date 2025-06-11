@@ -284,6 +284,7 @@ export async function POST(request) {
       valorTotal: preco * quantidade,
       margemUtilizada: margemUtilizada,
       observacoes: data.observacoes || '',
+      corEstrategia: data.corEstrategia || null,
       userId: session.user.id,
     };
     

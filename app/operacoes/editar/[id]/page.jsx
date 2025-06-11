@@ -25,7 +25,8 @@ export default function EditarOperacaoPage() {
     margemUtilizada: '',
     observacoes: '',
     dataAbertura: '',
-    dataFechamento: ''
+    dataFechamento: '',
+    corEstrategia: ''
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -77,7 +78,8 @@ export default function EditarOperacaoPage() {
           mesReferencia: data.mesReferencia,
           anoReferencia: data.anoReferencia,
           dataAbertura: formatarDataParaInput(data.dataAbertura),
-          dataFechamento: formatarDataParaInput(data.dataFechamento)
+          dataFechamento: formatarDataParaInput(data.dataFechamento),
+          corEstrategia: data.corEstrategia || ''
         });
       } catch (err) {
         console.error('Erro ao buscar operação:', err);
@@ -132,6 +134,7 @@ export default function EditarOperacaoPage() {
         quantidade: parseInt(formData.quantidade),
         margemUtilizada: formData.margemUtilizada ? parseFloat(formData.margemUtilizada) : 0,
         observacoes: formData.observacoes || '',
+        corEstrategia: formData.corEstrategia || null,
         // Incluir datas apenas se foram fornecidas
         ...(formData.dataAbertura && { dataAbertura: new Date(`${formData.dataAbertura}T12:00:00Z`) }),
         ...(formData.dataFechamento && { dataFechamento: new Date(`${formData.dataFechamento}T12:00:00Z`) })
@@ -335,7 +338,7 @@ export default function EditarOperacaoPage() {
               </div>
 
               <div className="mb-6">
-                <h3 className="text-lg font-semibold text-[var(--text-primary)] mb-2">Margem e Observações</h3>
+                <h3 className="text-lg font-semibold text-[var(--text-primary)] mb-2">Margem, Observações e Estratégia</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="margemUtilizada">
@@ -355,19 +358,56 @@ export default function EditarOperacaoPage() {
                   </div>
                   
                   <div>
-                    <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="observacoes">
-                      Observações (opcional)
+                    <label className="block text-gray-700 text-sm font-bold mb-2">
+                      Cor da Estratégia (opcional)
                     </label>
-                    <textarea
-                      id="observacoes"
-                      name="observacoes"
-                      className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                      rows="2"
-                      placeholder="Informações adicionais sobre a operação..."
-                      value={formData.observacoes}
-                      onChange={handleChange}
-                    ></textarea>
+                    <div className="flex items-center gap-2">
+                      <input
+                        id="corEstrategia"
+                        name="corEstrategia"
+                        type="color"
+                        className="w-16 h-10 border rounded cursor-pointer"
+                        value={formData.corEstrategia || '#3B82F6'}
+                        onChange={handleChange}
+                        disabled={!formData.corEstrategia}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (formData.corEstrategia) {
+                            setFormData(prev => ({ ...prev, corEstrategia: '' }));
+                          } else {
+                            setFormData(prev => ({ ...prev, corEstrategia: '#3B82F6' }));
+                          }
+                        }}
+                        className={`px-3 py-2 text-sm rounded ${
+                          formData.corEstrategia 
+                            ? 'bg-red-100 text-red-800 hover:bg-red-200' 
+                            : 'bg-blue-100 text-blue-800 hover:bg-blue-200'
+                        }`}
+                      >
+                        {formData.corEstrategia ? 'Remover Cor' : 'Adicionar Cor'}
+                      </button>
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1">
+                      Use para agrupar operações relacionadas (ex: travas, estratégias)
+                    </p>
                   </div>
+                </div>
+                
+                <div className="mt-4">
+                  <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="observacoes">
+                    Observações (opcional)
+                  </label>
+                  <textarea
+                    id="observacoes"
+                    name="observacoes"
+                    className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                    rows="2"
+                    placeholder="Informações adicionais sobre a operação..."
+                    value={formData.observacoes}
+                    onChange={handleChange}
+                  ></textarea>
                 </div>
               </div>
 

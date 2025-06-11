@@ -57,7 +57,8 @@ const OperacoesContent = () => {
     preco: '',
     quantidade: '1',
     margemUtilizada: '',
-    observacoes: ''
+    observacoes: '',
+    corEstrategia: ''
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -520,7 +521,8 @@ const OperacoesContent = () => {
         preco: parseFloat(formData.preco),
         quantidade: parseInt(formData.quantidade) || 1,
         margemUtilizada: formData.margemUtilizada ? parseFloat(formData.margemUtilizada) : 0,
-        observacoes: formData.observacoes || ''
+        observacoes: formData.observacoes || '',
+        corEstrategia: formData.corEstrategia || null
       };
       
       console.log('Enviando operação:', novaOperacao);
@@ -551,7 +553,8 @@ const OperacoesContent = () => {
         preco: '',
         quantidade: '1',
         margemUtilizada: '',
-        observacoes: ''
+        observacoes: '',
+        corEstrategia: ''
       });
       setShowForm(false);
     } catch (err) {
@@ -1119,19 +1122,58 @@ const OperacoesContent = () => {
               </div>
             </div>
             
-            <div className="mb-4">
-              <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="observacoes">
-                Observações (opcional)
-              </label>
-              <textarea
-                id="observacoes"
-                name="observacoes"
-                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                rows="2"
-                placeholder="Informações adicionais sobre a operação..."
-                value={formData.observacoes}
-                onChange={handleChange}
-              ></textarea>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+              <div>
+                <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="observacoes">
+                  Observações (opcional)
+                </label>
+                <textarea
+                  id="observacoes"
+                  name="observacoes"
+                  className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                  rows="2"
+                  placeholder="Informações adicionais sobre a operação..."
+                  value={formData.observacoes}
+                  onChange={handleChange}
+                ></textarea>
+              </div>
+              
+              <div>
+                <label className="block text-gray-700 text-sm font-bold mb-2">
+                  Cor da Estratégia (opcional)
+                </label>
+                <div className="flex items-center gap-2">
+                  <input
+                    id="corEstrategia"
+                    name="corEstrategia"
+                    type="color"
+                    className="w-16 h-10 border rounded cursor-pointer"
+                    value={formData.corEstrategia || '#3B82F6'}
+                    onChange={handleChange}
+                    disabled={!formData.corEstrategia}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (formData.corEstrategia) {
+                        setFormData(prev => ({ ...prev, corEstrategia: '' }));
+                      } else {
+                        setFormData(prev => ({ ...prev, corEstrategia: '#3B82F6' }));
+                      }
+                    }}
+                    className={`px-3 py-2 text-sm rounded ${
+                      formData.corEstrategia 
+                        ? 'bg-red-100 text-red-800 hover:bg-red-200' 
+                        : 'bg-blue-100 text-blue-800 hover:bg-blue-200'
+                    }`}
+                  >
+                    {formData.corEstrategia ? 'Remover Cor' : 'Adicionar Cor'}
+                  </button>
+                </div>
+                <p className="text-xs text-gray-500 mt-1">
+                  Use para agrupar operações relacionadas (ex: travas, estratégias)
+                </p>
+              </div>
             </div>
             
             <div className="flex items-center justify-between">
@@ -1307,16 +1349,22 @@ const OperacoesContent = () => {
                               ? 'bg-red-50 dark:!bg-[#280808]' 
                               : '' 
                           : ''
-                      }`}
-                      style={op.status === 'Fechada' ? {
-                        backgroundColor: theme === 'dark' 
-                          ? op.resultadoTotal > 0 
-                            ? '#062810' 
-                            : op.resultadoTotal < 0 
-                              ? '#280808' 
-                              : '' 
-                          : ''
-                      } : {}}
+                      } ${op.corEstrategia ? 'border-l-4' : ''}`}
+                      style={{
+                        ...(op.status === 'Fechada' ? {
+                          backgroundColor: theme === 'dark' 
+                            ? op.resultadoTotal > 0 
+                              ? '#062810' 
+                              : op.resultadoTotal < 0 
+                                ? '#280808' 
+                                : '' 
+                            : ''
+                        } : {}),
+                        ...(op.corEstrategia ? {
+                          borderLeftColor: op.corEstrategia,
+                          borderLeftWidth: '4px'
+                        } : {})
+                      }}
                     >
                       <td className="px-2 py-3 whitespace-nowrap text-center">
                         <input
@@ -1327,14 +1375,25 @@ const OperacoesContent = () => {
                         />
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap">
-                        <Link href={`/operacoes/${op._id}`} className="text-[var(--primary)] hover:text-[var(--primary-hover)] font-medium">
-                          {op.ticker || (op.nome ? op.nome : 'N/A')}
-                        </Link>
-                        {op.idVisual && (
-                          <div className="text-xs text-[var(--text-tertiary)]">
-                            {op.idVisual}
+                        <div className="flex items-center gap-2">
+                          {op.corEstrategia && (
+                            <div 
+                              className="w-3 h-3 rounded-full flex-shrink-0" 
+                              style={{ backgroundColor: op.corEstrategia }}
+                              title="Operação faz parte de uma estratégia"
+                            ></div>
+                          )}
+                          <div>
+                            <Link href={`/operacoes/${op._id}`} className="text-[var(--primary)] hover:text-[var(--primary-hover)] font-medium">
+                              {op.ticker || (op.nome ? op.nome : 'N/A')}
+                            </Link>
+                            {op.idVisual && (
+                              <div className="text-xs text-[var(--text-tertiary)]">
+                                {op.idVisual}
+                              </div>
+                            )}
                           </div>
-                        )}
+                        </div>
                       </td>
                       
                       <td className="px-4 py-3 whitespace-nowrap text-sm">
