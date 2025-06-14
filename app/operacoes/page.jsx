@@ -982,6 +982,20 @@ const OperacoesContent = () => {
                 <div className="flex items-center">
                   <input 
                     type="radio" 
+                    id="prefixIBOV" 
+                    name="tickerPrefix" 
+                    className="w-4 h-4 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                    checked={tickerPrefix === 'IBOV'}
+                    onChange={() => handlePrefixChange('IBOV')}
+                  />
+                  <label htmlFor="prefixIBOV" className="ml-2 text-sm font-medium text-gray-700 cursor-pointer">
+                    IBOV
+                  </label>
+                </div>
+                
+                <div className="flex items-center">
+                  <input 
+                    type="radio" 
                     id="prefixOutros" 
                     name="tickerPrefix" 
                     className="w-4 h-4 text-blue-600 focus:ring-blue-500 cursor-pointer"

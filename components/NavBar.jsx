@@ -99,6 +99,11 @@ export default function NavBar() {
                   <NavLink href="/historico">Histórico</NavLink>
                   <NavLink href="/margem">Margem</NavLink>
                   <NavLink href="/operacoes">Minhas Operações</NavLink>
+                  <NavLink href="/plano-trade">
+                    <span className="whitespace-nowrap">
+                      Plano de<br />Trading
+                    </span>
+                  </NavLink>
                   <NavLink href="/quant">Quant</NavLink>
                   <NavLink href="/relatorios">Relatórios</NavLink>
                   
@@ -200,6 +205,7 @@ export default function NavBar() {
               <MobileNavLink href="/historico">Histórico</MobileNavLink>
               <MobileNavLink href="/margem">Margem</MobileNavLink>
               <MobileNavLink href="/operacoes">Minhas Operações</MobileNavLink>
+              <MobileNavLink href="/plano-trade">Plano de Trading</MobileNavLink>
               <MobileNavLink href="/quant">Quant</MobileNavLink>
               <MobileNavLink href="/relatorios">Relatórios</MobileNavLink>
               
