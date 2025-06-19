@@ -48,6 +48,7 @@ const CarteiraContent = ({ params }) => {
   const [operacoes, setOperacoes] = useState([]);
   const [usuarioInfo, setUsuarioInfo] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingOperacoes, setIsLoadingOperacoes] = useState(false);
   const [error, setError] = useState(null);
   const [statusFiltro, setStatusFiltro] = useState('Todos');
 
@@ -91,14 +92,13 @@ const CarteiraContent = ({ params }) => {
     }
   }, [session, status, router]);
 
-  // Buscar informações do usuário e suas operações
+  // Buscar informações do usuário (apenas uma vez)
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchUsuarioInfo = async () => {
       if (!resolvedParams.userId) return;
       
       setIsLoading(true);
       try {
-        // Buscar informações do usuário
         const usuariosResponse = await fetch('/api/usuarios');
         if (!usuariosResponse.ok) {
           throw new Error('Erro ao carregar informações do usuário');
@@ -110,8 +110,26 @@ const CarteiraContent = ({ params }) => {
           throw new Error('Usuário não encontrado');
         }
         setUsuarioInfo(usuario);
+      } catch (error) {
+        console.error('Erro ao buscar informações do usuário:', error);
+        setError(error.message);
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-        // Buscar operações do usuário
+    if (session?.user?.role === 'modelo' || session?.user?.role === 'admin') {
+      fetchUsuarioInfo();
+    }
+  }, [resolvedParams.userId, session]);
+
+  // Buscar operações do usuário (separado para permitir loading independente)
+  useEffect(() => {
+    const fetchOperacoes = async () => {
+      if (!resolvedParams.userId || !usuarioInfo) return;
+      
+      setIsLoadingOperacoes(true);
+      try {
         const queryParams = new URLSearchParams();
         if (mesAtivo && mesAtivo !== 'todas') {
           queryParams.append('mes', mesAtivo);
@@ -126,17 +144,17 @@ const CarteiraContent = ({ params }) => {
         const operacoesData = await operacoesResponse.json();
         setOperacoes(operacoesData.operacoes || []);
       } catch (error) {
-        console.error('Erro ao buscar dados:', error);
+        console.error('Erro ao buscar operações:', error);
         setError(error.message);
       } finally {
-        setIsLoading(false);
+        setIsLoadingOperacoes(false);
       }
     };
 
-    if (session?.user?.role === 'modelo' || session?.user?.role === 'admin') {
-      fetchData();
+    if (usuarioInfo && (session?.user?.role === 'modelo' || session?.user?.role === 'admin')) {
+      fetchOperacoes();
     }
-  }, [resolvedParams.userId, mesAtivo, anoAtivo, session]);
+  }, [resolvedParams.userId, mesAtivo, anoAtivo, usuarioInfo, session]);
 
   // Função para navegar entre meses
   const handleMesChange = (novoMes) => {
@@ -362,7 +380,16 @@ const CarteiraContent = ({ params }) => {
                 </tr>
               </thead>
               <tbody className="bg-surface-card divide-y divide-surface-border">
-                {operacoesOrdenadas.length === 0 ? (
+                {isLoadingOperacoes ? (
+                  <tr>
+                    <td colSpan="11" className="px-6 py-8 text-center">
+                      <div className="flex items-center justify-center">
+                        <div className="animate-spin h-6 w-6 border-4 border-blue-500 border-t-transparent rounded-full mr-3"></div>
+                        <span className="text-text-secondary">Carregando operações...</span>
+                      </div>
+                    </td>
+                  </tr>
+                ) : operacoesOrdenadas.length === 0 ? (
                   <tr>
                     <td colSpan="11" className="px-6 py-4 text-center text-text-secondary">
                       Nenhuma operação encontrada para os filtros selecionados.
