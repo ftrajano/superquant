@@ -49,11 +49,15 @@ export async function POST(request) {
 
     // Enviar email de confirmação
     try {
-      console.log('Tentando enviar email de confirmação para:', email);
+      console.log('🔵 INÍCIO: Tentando enviar email de confirmação para:', email);
+      console.log('🔵 Token gerado:', emailConfirmToken);
+      console.log('🔵 RESEND_API_KEY disponível:', !!process.env.RESEND_API_KEY);
+      
       const emailResult = await sendEmailConfirmation(email, name, emailConfirmToken);
-      console.log('Email enviado com sucesso:', emailResult);
+      console.log('✅ Email enviado com sucesso:', emailResult);
     } catch (emailError) {
-      console.error('Erro ao enviar email de confirmação:', emailError);
+      console.error('❌ ERRO COMPLETO ao enviar email:', emailError);
+      console.error('❌ Stack trace:', emailError.stack);
       // Continue mesmo se o email falhar
     }
 

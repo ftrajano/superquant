@@ -1,10 +1,12 @@
 // app/api/operacoes/[id]/fechar/route.js
 import { connectToDatabase } from '@/lib/db/mongodb';
 import Operacao from '@/lib/models/Operacao';
+import User from '@/lib/models/User';
 import { NextResponse } from 'next/server';
 import mongoose from 'mongoose';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
+import { notifyOperacaoFechamento } from '@/lib/telegram';
 
 export async function POST(request, { params }) {
   try {
@@ -66,9 +68,10 @@ export async function POST(request, { params }) {
     }
     
     // Obter a quantidade total da operação e a quantidade já fechada
-    const quantidadeTotal = operacao.quantidade || 1;
+    // Para operações parcialmente fechadas, precisamos usar a quantidade original
+    const quantidadeOriginal = operacao.quantidadeOriginal || operacao.quantidade || 1;
     const quantidadeJaFechada = operacao.quantidadeFechada || 0;
-    const quantidadeDisponivel = quantidadeTotal - quantidadeJaFechada;
+    const quantidadeDisponivel = quantidadeOriginal - quantidadeJaFechada;
     
     // Se não foi especificada uma quantidade, fechar toda a operação restante
     if (quantidadeParaFechar === null) {
@@ -147,6 +150,8 @@ export async function POST(request, { params }) {
         id,
         { 
           $set: {
+            // Manter a quantidade original para consistência
+            quantidadeOriginal: operacao.quantidadeOriginal || operacao.quantidade,
             quantidade: quantidadeRestante,
             valorTotal: operacao.preco * quantidadeRestante,
             status: 'Parcialmente Fechada',
@@ -159,11 +164,24 @@ export async function POST(request, { params }) {
         { new: true, runValidators: true }
       );
       
+      // Enviar notificação do Telegram para usuários modelo
+      try {
+        const usuario = await User.findById(session.user.id);
+        if (usuario && usuario.role === 'modelo') {
+          console.log('Enviando notificação de fechamento parcial para o Telegram...');
+          await notifyOperacaoFechamento(novaOperacaoFechada);
+          console.log('Notificação do Telegram enviada com sucesso');
+        }
+      } catch (telegramError) {
+        console.error('Erro ao enviar notificação do Telegram:', telegramError);
+        // Não falhar a operação principal por causa do Telegram
+      }
+      
       // Retornar ambas as operações
       return NextResponse.json({
         operacaoOriginal: operacaoAtualizada,
         operacaoFechada: novaOperacaoFechada,
-        mensagem: `Fechamento parcial: ${quantidadeParaFechar} de ${quantidadeTotal} unidades fechadas com sucesso`
+        mensagem: `Fechamento parcial: ${quantidadeParaFechar} de ${quantidadeOriginal} unidades fechadas com sucesso`
       });
       
     } else {
@@ -185,11 +203,24 @@ export async function POST(request, { params }) {
             valorTotal: valorTotalAbertura,
             valorTotalFechamento: valorTotalFechamento,
             resultadoTotal: resultadoTotal,
-            quantidadeFechada: quantidadeTotal
+            quantidadeFechada: quantidadeOriginal
           } 
         },
         { new: true, runValidators: true }
       );
+      
+      // Enviar notificação do Telegram para usuários modelo
+      try {
+        const usuario = await User.findById(session.user.id);
+        if (usuario && usuario.role === 'modelo') {
+          console.log('Enviando notificação de fechamento total para o Telegram...');
+          await notifyOperacaoFechamento(operacaoAtualizada);
+          console.log('Notificação do Telegram enviada com sucesso');
+        }
+      } catch (telegramError) {
+        console.error('Erro ao enviar notificação do Telegram:', telegramError);
+        // Não falhar a operação principal por causa do Telegram
+      }
       
       return NextResponse.json({
         operacaoFechada: operacaoAtualizada,

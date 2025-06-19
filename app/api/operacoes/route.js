@@ -7,6 +7,7 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import mongoose from 'mongoose';
+import { notifyOperacaoAbertura } from '@/lib/telegram';
 
 // GET - Listar operacoes
 export async function GET(request) {
@@ -353,6 +354,16 @@ export async function POST(request) {
         console.error('Erro ao registrar no histórico:', historicoError);
         console.error('Stack trace:', historicoError.stack);
         // Não falhar a operação principal por causa do histórico
+      }
+      
+      // Enviar notificação para o Telegram
+      try {
+        console.log('Enviando notificação para o Telegram...');
+        await notifyOperacaoAbertura(novaOperacao);
+        console.log('Notificação do Telegram enviada com sucesso');
+      } catch (telegramError) {
+        console.error('Erro ao enviar notificação do Telegram:', telegramError);
+        // Não falhar a operação principal por causa do Telegram
       }
     } else {
       console.log('Usuário não é modelo, não registrando no histórico');

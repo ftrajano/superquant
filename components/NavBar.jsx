@@ -105,6 +105,11 @@ export default function NavBar() {
                     </span>
                   </NavLink>
                   <NavLink href="/quant">Quant</NavLink>
+                  
+                  {/* Carteiras - apenas para modelo e admin */}
+                  {(session?.user?.role === 'modelo' || session?.user?.role === 'admin') && (
+                    <NavLink href="/carteiras">Carteiras</NavLink>
+                  )}
                   <NavLink href="/relatorios">Relatórios</NavLink>
                   
                   {/* Links de administração - apenas para admins */}
@@ -207,6 +212,12 @@ export default function NavBar() {
               <MobileNavLink href="/operacoes">Minhas Operações</MobileNavLink>
               <MobileNavLink href="/plano-trade">Plano de Trading</MobileNavLink>
               <MobileNavLink href="/quant">Quant</MobileNavLink>
+              
+              {/* Carteiras - apenas para modelo e admin */}
+              {(session?.user?.role === 'modelo' || session?.user?.role === 'admin') && (
+                <MobileNavLink href="/carteiras">Carteiras</MobileNavLink>
+              )}
+              
               <MobileNavLink href="/relatorios">Relatórios</MobileNavLink>
               
               {/* Admin links para mobile */}

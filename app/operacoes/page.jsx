@@ -208,7 +208,13 @@ const OperacoesContent = () => {
     const operacao = operacoes.find(op => op._id === id);
     setOperacaoParaFechar(operacao);
     setPrecoFechamento('');
-    setQuantidadeFechar(operacao.quantidade || '1');
+    
+    // Calcular quantidade disponível para fechar
+    const quantidadeOriginal = operacao.quantidadeOriginal || operacao.quantidade || 1;
+    const quantidadeJaFechada = operacao.quantidadeFechada || 0;
+    const quantidadeDisponivel = quantidadeOriginal - quantidadeJaFechada;
+    
+    setQuantidadeFechar(quantidadeDisponivel.toString());
     setFechamentoParcial(false);
     setShowFecharModal(true);
   };
@@ -410,8 +416,13 @@ const OperacoesContent = () => {
           throw new Error('Quantidade a fechar é obrigatória e deve ser um número positivo');
         }
         
-        if (qtde > (operacaoParaFechar.quantidade || 1)) {
-          throw new Error(`Quantidade a fechar não pode ser maior que a quantidade total (${operacaoParaFechar.quantidade || 1})`);
+        // Calcular quantidade disponível para fechar
+        const quantidadeOriginal = operacaoParaFechar.quantidadeOriginal || operacaoParaFechar.quantidade || 1;
+        const quantidadeJaFechada = operacaoParaFechar.quantidadeFechada || 0;
+        const quantidadeDisponivel = quantidadeOriginal - quantidadeJaFechada;
+        
+        if (qtde > quantidadeDisponivel) {
+          throw new Error(`Quantidade a fechar não pode ser maior que a quantidade disponível (${quantidadeDisponivel})`);
         }
       }
       
@@ -650,17 +661,34 @@ const OperacoesContent = () => {
                       name="quantidadeFechar"
                       type="number"
                       min="1"
-                      max={operacaoParaFechar?.quantidade || 1}
+                      max={(() => {
+                        const quantidadeOriginal = operacaoParaFechar?.quantidadeOriginal || operacaoParaFechar?.quantidade || 1;
+                        const quantidadeJaFechada = operacaoParaFechar?.quantidadeFechada || 0;
+                        return quantidadeOriginal - quantidadeJaFechada;
+                      })()}
                       className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                      placeholder={`Máximo: ${operacaoParaFechar?.quantidade || 1}`}
+                      placeholder={`Máximo: ${(() => {
+                        const quantidadeOriginal = operacaoParaFechar?.quantidadeOriginal || operacaoParaFechar?.quantidade || 1;
+                        const quantidadeJaFechada = operacaoParaFechar?.quantidadeFechada || 0;
+                        return quantidadeOriginal - quantidadeJaFechada;
+                      })()}`}
                       value={quantidadeFechar}
                       onChange={(e) => setQuantidadeFechar(e.target.value)}
                       required={fechamentoParcial}
                     />
                     <p className="text-xs text-gray-500 mt-1">
-                      {parseInt(quantidadeFechar) < (operacaoParaFechar?.quantidade || 1) 
-                        ? `Após o fechamento, você ficará com ${(operacaoParaFechar?.quantidade || 1) - parseInt(quantidadeFechar || 0)} unidades em aberto.`
-                        : 'Você está fechando toda a posição.'}
+                      {(() => {
+                        const quantidadeOriginal = operacaoParaFechar?.quantidadeOriginal || operacaoParaFechar?.quantidade || 1;
+                        const quantidadeJaFechada = operacaoParaFechar?.quantidadeFechada || 0;
+                        const quantidadeDisponivel = quantidadeOriginal - quantidadeJaFechada;
+                        const quantidadeParaFechar = parseInt(quantidadeFechar || 0);
+                        
+                        if (quantidadeParaFechar < quantidadeDisponivel) {
+                          return `Após o fechamento, você ficará com ${quantidadeDisponivel - quantidadeParaFechar} unidades em aberto.`;
+                        } else {
+                          return 'Você está fechando toda a posição restante.';
+                        }
+                      })()}
                     </p>
                   </div>
                 )}

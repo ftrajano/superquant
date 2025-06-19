@@ -8,32 +8,32 @@ export default function PlanoTradePage() {
   const [formData, setFormData] = useState({
     capitalDisponivel: '',
     percentualReserva: '20',
-    valorPorOperacao: ''
+    percentualPorOperacao: '25'
   });
 
   const [calculados, setCalculados] = useState({
     capitalParaTrade: 0,
-    capitalDividido: 0,
+    valorMensal: 0,
     reserva: 0,
-    percentualPorOperacao: 0
+    valorPorOperacao: 0
   });
 
   // Calcular valores automaticamente quando os dados mudarem
   useEffect(() => {
     const capital = parseFloat(formData.capitalDisponivel) || 0;
     const percentualReserva = parseFloat(formData.percentualReserva) || 0;
-    const valorOperacao = parseFloat(formData.valorPorOperacao) || 0;
+    const percentualPorOperacao = parseFloat(formData.percentualPorOperacao) || 25;
 
     const reserva = (capital * percentualReserva) / 100;
     const capitalParaTrade = capital - reserva;
-    const capitalDividido = capitalParaTrade / 6;
-    const percentualPorOperacao = capital > 0 ? (valorOperacao / capital) * 100 : 0;
+    const valorMensal = capitalParaTrade / 6;
+    const valorPorOperacao = (valorMensal * percentualPorOperacao) / 100;
 
     setCalculados({
       capitalParaTrade,
-      capitalDividido,
+      valorMensal,
       reserva,
-      percentualPorOperacao
+      valorPorOperacao
     });
   }, [formData]);
 
@@ -52,19 +52,6 @@ export default function PlanoTradePage() {
     }).format(value);
   };
 
-  const getRiscoMargem = () => {
-    if (calculados.percentualPorOperacao <= 5) {
-      return { nivel: 'Baixo', cor: 'text-green-600', bg: 'bg-green-100' };
-    } else if (calculados.percentualPorOperacao <= 10) {
-      return { nivel: 'Moderado', cor: 'text-yellow-600', bg: 'bg-yellow-100' };
-    } else if (calculados.percentualPorOperacao <= 20) {
-      return { nivel: 'Alto', cor: 'text-orange-600', bg: 'bg-orange-100' };
-    } else {
-      return { nivel: 'Crítico', cor: 'text-red-600', bg: 'bg-red-100' };
-    }
-  };
-
-  const risco = getRiscoMargem();
 
   return (
     <div className="min-h-screen bg-theme-background">
@@ -108,17 +95,48 @@ export default function PlanoTradePage() {
                 max="100"
               />
 
-              <Input
-                id="valorPorOperacao"
-                name="valorPorOperacao"
-                type="number"
-                label="Valor por Operação (R$)"
-                placeholder="Ex: 5000"
-                value={formData.valorPorOperacao}
-                onChange={handleChange}
-                step="0.01"
-                min="0"
-              />
+              <div>
+                <label className="block text-sm font-medium text-text-primary mb-2">
+                  Percentual por Operação (%)
+                </label>
+                <div className="space-y-2">
+                  <div className="flex space-x-4">
+                    <label className="flex items-center">
+                      <input
+                        type="radio"
+                        name="percentualPorOperacao"
+                        value="10"
+                        checked={formData.percentualPorOperacao === '10'}
+                        onChange={handleChange}
+                        className="mr-2"
+                      />
+                      <span className="text-sm text-text-primary">10%</span>
+                    </label>
+                    <label className="flex items-center">
+                      <input
+                        type="radio"
+                        name="percentualPorOperacao"
+                        value="20"
+                        checked={formData.percentualPorOperacao === '20'}
+                        onChange={handleChange}
+                        className="mr-2"
+                      />
+                      <span className="text-sm text-text-primary">20%</span>
+                    </label>
+                    <label className="flex items-center">
+                      <input
+                        type="radio"
+                        name="percentualPorOperacao"
+                        value="25"
+                        checked={formData.percentualPorOperacao === '25'}
+                        onChange={handleChange}
+                        className="mr-2"
+                      />
+                      <span className="text-sm text-text-primary">25%</span>
+                    </label>
+                  </div>
+                </div>
+              </div>
             </div>
           </Card>
 
@@ -150,51 +168,25 @@ export default function PlanoTradePage() {
                 </div>
                 
                 <div className="flex justify-between items-center border-t pt-2">
-                  <span className="text-text-secondary text-sm">Capital ÷ 6 posições:</span>
+                  <span className="text-text-secondary text-sm">Valor Mensal (÷ 6):</span>
                   <span className="text-primary font-bold text-lg">
-                    {formatCurrency(calculados.capitalDividido)}
+                    {formatCurrency(calculados.valorMensal)}
                   </span>
                 </div>
               </div>
 
-              {/* Análise de Risco */}
-              {formData.valorPorOperacao && (
-                <div className={`p-4 rounded-lg ${risco.bg}`}>
-                  <h3 className="font-semibold text-text-primary mb-2">Análise de Risco por Operação</h3>
-                  
-                  <div className="flex justify-between items-center mb-2">
-                    <span className="text-text-secondary text-sm">Valor por Operação:</span>
-                    <span className="text-text-primary font-semibold">
-                      {formatCurrency(parseFloat(formData.valorPorOperacao))}
-                    </span>
-                  </div>
-                  
-                  <div className="flex justify-between items-center mb-2">
-                    <span className="text-text-secondary text-sm">% do Capital Total:</span>
-                    <span className="text-text-primary font-semibold">
-                      {calculados.percentualPorOperacao.toFixed(2)}%
-                    </span>
-                  </div>
-                  
+              {/* Valor por Operação Calculado */}
+              {calculados.valorPorOperacao > 0 && (
+                <div className="p-4 bg-green-100 rounded-lg">
+                  <h3 className="font-semibold text-text-primary mb-2">💰 Valor por Operação</h3>
                   <div className="flex justify-between items-center">
-                    <span className="text-text-secondary text-sm">Nível de Risco:</span>
-                    <span className={`font-semibold ${risco.cor}`}>
-                      {risco.nivel}
+                    <span className="text-text-secondary text-sm">Valor calculado ({formData.percentualPorOperacao}% do mensal):</span>
+                    <span className="text-green-700 font-bold text-lg">
+                      {formatCurrency(calculados.valorPorOperacao)}
                     </span>
                   </div>
                 </div>
               )}
-
-              {/* Recomendações */}
-              <div className="p-4 bg-blue-50 rounded-lg">
-                <h3 className="font-semibold text-text-primary mb-2">💡 Recomendações</h3>
-                <ul className="text-sm text-text-secondary space-y-1">
-                  <li>• Mantenha uma reserva de emergência (15-25%)</li>
-                  <li>• Diversifique em até 6 posições diferentes</li>
-                  <li>• Use no máximo 5-10% do capital por operação</li>
-                  <li>• Monitore constantemente sua margem utilizada</li>
-                </ul>
-              </div>
             </div>
           </Card>
         </div>
