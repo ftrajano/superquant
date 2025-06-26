@@ -1,6 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 import NavBar from '@/components/NavBar';
 import { Card, Button, Input } from '@/components/ui';
 
@@ -17,6 +19,74 @@ export default function PlanoTradePage() {
     reserva: 0,
     valorPorOperacao: 0
   });
+
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState('');
+  const { data: session, status } = useSession();
+  const router = useRouter();
+
+  // Carregar dados salvos
+  useEffect(() => {
+    if (status === 'unauthenticated') {
+      router.push('/login');
+      return;
+    }
+
+    if (status === 'authenticated') {
+      carregarPlanoTrading();
+    }
+  }, [status, router]);
+
+  const carregarPlanoTrading = async () => {
+    try {
+      const response = await fetch('/api/plano-trading');
+      if (response.ok) {
+        const data = await response.json();
+        setFormData({
+          capitalDisponivel: data.capitalDisponivel?.toString() || '',
+          percentualReserva: data.percentualReserva?.toString() || '20',
+          percentualPorOperacao: data.percentualPorOperacao?.toString() || '25'
+        });
+      }
+    } catch (error) {
+      console.error('Erro ao carregar plano de trading:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const salvarPlanoTrading = async () => {
+    setSaving(true);
+    setMessage('');
+
+    try {
+      const response = await fetch('/api/plano-trading', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          capitalDisponivel: parseFloat(formData.capitalDisponivel) || 0,
+          percentualReserva: parseFloat(formData.percentualReserva) || 20,
+          percentualPorOperacao: parseFloat(formData.percentualPorOperacao) || 25
+        }),
+      });
+
+      if (response.ok) {
+        setMessage('Plano de trading salvo com sucesso!');
+        setTimeout(() => setMessage(''), 3000);
+      } else {
+        const data = await response.json();
+        setMessage(data.error || 'Erro ao salvar');
+      }
+    } catch (error) {
+      setMessage('Erro ao salvar plano de trading');
+      console.error('Erro:', error);
+    } finally {
+      setSaving(false);
+    }
+  };
 
   // Calcular valores automaticamente quando os dados mudarem
   useEffect(() => {
@@ -52,6 +122,20 @@ export default function PlanoTradePage() {
     }).format(value);
   };
 
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-theme-background">
+        <NavBar />
+        <div className="flex justify-center items-center min-h-[50vh]">
+          <div className="text-center">
+            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary mb-4"></div>
+            <p className="text-text-secondary">Carregando plano de trading...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-theme-background">
@@ -137,6 +221,28 @@ export default function PlanoTradePage() {
                   </div>
                 </div>
               </div>
+
+              {/* Botão Salvar */}
+              <div className="pt-4 border-t">
+                <Button
+                  onClick={salvarPlanoTrading}
+                  disabled={saving}
+                  className="w-full"
+                >
+                  {saving ? 'Salvando...' : 'Salvar Plano de Trading'}
+                </Button>
+              </div>
+
+              {/* Mensagem de feedback */}
+              {message && (
+                <div className={`p-3 rounded-lg text-sm ${
+                  message.includes('sucesso') 
+                    ? 'bg-green-100 text-green-700 border border-green-300' 
+                    : 'bg-red-100 text-red-700 border border-red-300'
+                }`}>
+                  {message}
+                </div>
+              )}
             </div>
           </Card>
 

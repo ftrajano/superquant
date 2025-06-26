@@ -36,10 +36,17 @@ const OperacoesContent = () => {
     'todas': 'todas'
   };
   
+  // Obter o mês atual
+  const getMesAtual = () => {
+    const meses = ['janeiro', 'fevereiro', 'marco', 'abril', 'maio', 'junho', 
+                   'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
+    return meses[new Date().getMonth()];
+  };
+  
   // Normalizar o mês para garantir que seja um dos valores válidos
   const mesAtivo = mesParam ? 
-    (mesesValidos[mesParam.toLowerCase()] || 'abril') : 
-    'abril';
+    (mesesValidos[mesParam.toLowerCase()] || getMesAtual()) : 
+    getMesAtual();
   
   const anoAtivo = searchParams.get('ano') || new Date().getFullYear().toString();
   const { data: session, status } = useSession();

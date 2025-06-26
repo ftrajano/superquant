@@ -8,6 +8,7 @@ import Input from '../../components/ui/Input';
 import Select from '../../components/ui/Select';
 import Card from '../../components/ui/Card';
 import StatusBadge from '../../components/ui/StatusBadge';
+import ModalEdicaoOperacao from '../../components/ModalEdicaoOperacao';
 
 export default function HistoricoPage() {
   const { data: session, status } = useSession();
@@ -20,6 +21,8 @@ export default function HistoricoPage() {
   const [total, setTotal] = useState(0);
   const [pagina, setPagina] = useState(1);
   const [totalPaginas, setTotalPaginas] = useState(0);
+  const [operacaoParaExcluir, setOperacaoParaExcluir] = useState(null);
+  const [operacaoParaEditar, setOperacaoParaEditar] = useState(null);
 
   // Redirecionar se não autenticado
   useEffect(() => {
@@ -130,6 +133,33 @@ export default function HistoricoPage() {
       return direcao === 'COMPRA' ? 'success' : 'warning';
     } else {
       return direcao === 'COMPRA' ? 'info' : 'error';
+    }
+  };
+
+  // Verificar se usuário pode editar/excluir
+  const podeEditarOperacao = (operacao) => {
+    if (!session?.user) return false;
+    if (session.user.role === 'admin') return true;
+    if (session.user.role === 'modelo' && operacao.userId === session.user.id) return true;
+    return false;
+  };
+
+  // Função para excluir operação
+  const excluirOperacao = async (id) => {
+    try {
+      const response = await fetch(`/api/historico/${id}`, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        // Recarregar histórico
+        buscarHistorico(busca, mes, ano, pagina);
+        setOperacaoParaExcluir(null);
+      } else {
+        console.error('Erro ao excluir operação');
+      }
+    } catch (error) {
+      console.error('Erro ao excluir operação:', error);
     }
   };
 
@@ -244,6 +274,24 @@ export default function HistoricoPage() {
                         <p className="text-sm font-medium text-text-primary mt-1">
                           Total: {formatarValor(operacao.preco * operacao.quantidade)}
                         </p>
+                        
+                        {/* Botões de ação */}
+                        {podeEditarOperacao(operacao) && (
+                          <div className="flex gap-2 mt-3 justify-end">
+                            <button
+                              onClick={() => setOperacaoParaEditar(operacao)}
+                              className="px-3 py-1 text-xs font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-md transition-colors"
+                            >
+                              Editar
+                            </button>
+                            <button
+                              onClick={() => setOperacaoParaExcluir(operacao)}
+                              className="px-3 py-1 text-xs font-medium text-red-600 bg-red-50 hover:bg-red-100 rounded-md transition-colors"
+                            >
+                              Excluir
+                            </button>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </Card>
@@ -284,6 +332,45 @@ export default function HistoricoPage() {
               </div>
             )}
           </>
+        )}
+
+        {/* Modal de confirmação de exclusão */}
+        {operacaoParaExcluir && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white dark:bg-gray-800 p-6 rounded-lg max-w-md w-full mx-4">
+              <h3 className="text-lg font-semibold mb-4">Confirmar Exclusão</h3>
+              <p className="text-gray-600 dark:text-gray-300 mb-6">
+                Tem certeza que deseja excluir a operação <strong>{operacaoParaExcluir.nome}</strong>?
+                Esta ação não pode ser desfeita.
+              </p>
+              <div className="flex gap-3 justify-end">
+                <button
+                  onClick={() => setOperacaoParaExcluir(null)}
+                  className="px-4 py-2 text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={() => excluirOperacao(operacaoParaExcluir._id)}
+                  className="px-4 py-2 text-white bg-red-600 hover:bg-red-700 rounded-md transition-colors"
+                >
+                  Excluir
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Modal de edição */}
+        {operacaoParaEditar && (
+          <ModalEdicaoOperacao 
+            operacao={operacaoParaEditar}
+            onClose={() => setOperacaoParaEditar(null)}
+            onSave={() => {
+              buscarHistorico(busca, mes, ano, pagina);
+              setOperacaoParaEditar(null);
+            }}
+          />
         )}
       </div>
     </div>

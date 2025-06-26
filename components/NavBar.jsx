@@ -94,8 +94,18 @@ export default function NavBar() {
             <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
               {status === 'authenticated' && (
                 <>
+                  {/* Carteiras - apenas para modelo e admin */}
+                  {(session?.user?.role === 'modelo' || session?.user?.role === 'admin') && (
+                    <NavLink href="/carteiras">Carteiras</NavLink>
+                  )}
                   <NavLink href="/copytrading">CopyTrading</NavLink>
                   <NavLink href="/">Dashboard</NavLink>
+                  {/* Links de administração - apenas para admins */}
+                  {session?.user?.role === 'admin' && (
+                    <NavLink href="/admin/usuarios" isAdmin>
+                      Gerenciar Usuários
+                    </NavLink>
+                  )}
                   <NavLink href="/historico">Histórico</NavLink>
                   <NavLink href="/margem">Margem</NavLink>
                   <NavLink href="/operacoes">Minhas Operações</NavLink>
@@ -105,19 +115,7 @@ export default function NavBar() {
                     </span>
                   </NavLink>
                   <NavLink href="/quant">Quant</NavLink>
-                  
-                  {/* Carteiras - apenas para modelo e admin */}
-                  {(session?.user?.role === 'modelo' || session?.user?.role === 'admin') && (
-                    <NavLink href="/carteiras">Carteiras</NavLink>
-                  )}
                   <NavLink href="/relatorios">Relatórios</NavLink>
-                  
-                  {/* Links de administração - apenas para admins */}
-                  {session?.user?.role === 'admin' && (
-                    <NavLink href="/admin/usuarios" isAdmin>
-                      Gerenciar Usuários
-                    </NavLink>
-                  )}
                 </>
               )}
             </div>
@@ -205,29 +203,25 @@ export default function NavBar() {
         <div className="pt-2 pb-3 space-y-1">
           {status === 'authenticated' ? (
             <>
-              <MobileNavLink href="/copytrading">CopyTrading</MobileNavLink>
-              <MobileNavLink href="/">Dashboard</MobileNavLink>
-              <MobileNavLink href="/historico">Histórico</MobileNavLink>
-              <MobileNavLink href="/margem">Margem</MobileNavLink>
-              <MobileNavLink href="/operacoes">Minhas Operações</MobileNavLink>
-              <MobileNavLink href="/plano-trade">Plano de Trading</MobileNavLink>
-              <MobileNavLink href="/quant">Quant</MobileNavLink>
-              
               {/* Carteiras - apenas para modelo e admin */}
               {(session?.user?.role === 'modelo' || session?.user?.role === 'admin') && (
                 <MobileNavLink href="/carteiras">Carteiras</MobileNavLink>
               )}
-              
-              <MobileNavLink href="/relatorios">Relatórios</MobileNavLink>
-              
+              <MobileNavLink href="/copytrading">CopyTrading</MobileNavLink>
+              <MobileNavLink href="/">Dashboard</MobileNavLink>
               {/* Admin links para mobile */}
               {session?.user?.role === 'admin' && (
                 <MobileNavLink href="/admin/usuarios" isAdmin>
                   Gerenciar Usuários
                 </MobileNavLink>
               )}
-              
+              <MobileNavLink href="/historico">Histórico</MobileNavLink>
+              <MobileNavLink href="/margem">Margem</MobileNavLink>
               <MobileNavLink href="/perfil">Meu Perfil</MobileNavLink>
+              <MobileNavLink href="/operacoes">Minhas Operações</MobileNavLink>
+              <MobileNavLink href="/plano-trade">Plano de Trading</MobileNavLink>
+              <MobileNavLink href="/quant">Quant</MobileNavLink>
+              <MobileNavLink href="/relatorios">Relatórios</MobileNavLink>
               
               <div className="flex items-center pl-3 pr-4 py-2">
                 <ThemeToggleButton mobile />
