@@ -50,9 +50,9 @@ export default function Home() {
 
               <Link href="/copytrading" className="block bg-[var(--surface-card)] overflow-hidden rounded-lg shadow hover:shadow-lg transition-shadow duration-300">
                 <div className="p-6">
-                  <h3 className="text-xl font-semibold text-[var(--primary)]">CopyTrading</h3>
+                  <h3 className="text-xl font-semibold text-[var(--primary)]">SuperQuantBot</h3>
                   <p className="mt-2 text-[var(--text-secondary)]">
-                    Acesse operações modelo para se inspirar
+                    Acesse operações modelo geradas pelo bot para se inspirar
                   </p>
                   <div className="mt-4 text-sm font-medium text-[var(--primary)]">
                     Acessar →
@@ -77,6 +77,30 @@ export default function Home() {
                   <h3 className="text-xl font-semibold text-[var(--primary)]">Quant</h3>
                   <p className="mt-2 text-[var(--text-secondary)]">
                     Análise quantitativa de opções com dados em tempo real
+                  </p>
+                  <div className="mt-4 text-sm font-medium text-[var(--primary)]">
+                    Acessar →
+                  </div>
+                </div>
+              </Link>
+
+              <Link href="/margem" className="block bg-[var(--surface-card)] overflow-hidden rounded-lg shadow hover:shadow-lg transition-shadow duration-300">
+                <div className="p-6">
+                  <h3 className="text-xl font-semibold text-[var(--primary)]">Margem</h3>
+                  <p className="mt-2 text-[var(--text-secondary)]">
+                    Calcule margens necessárias para suas operações
+                  </p>
+                  <div className="mt-4 text-sm font-medium text-[var(--primary)]">
+                    Acessar →
+                  </div>
+                </div>
+              </Link>
+
+              <Link href="/plano-trade" className="block bg-[var(--surface-card)] overflow-hidden rounded-lg shadow hover:shadow-lg transition-shadow duration-300">
+                <div className="p-6">
+                  <h3 className="text-xl font-semibold text-[var(--primary)]">Plano de Trading</h3>
+                  <p className="mt-2 text-[var(--text-secondary)]">
+                    Gerencie seus planos e estratégias de trading
                   </p>
                   <div className="mt-4 text-sm font-medium text-[var(--primary)]">
                     Acessar →

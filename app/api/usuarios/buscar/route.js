@@ -23,9 +23,9 @@ export async function GET(request) {
     const query = searchParams.get('q');
     const limit = parseInt(searchParams.get('limit')) || 20;
 
-    if (!query || query.length < 2) {
+    if (!query || query.length < 1) {
       return NextResponse.json({ 
-        error: 'Query deve ter pelo menos 2 caracteres',
+        error: 'Query deve ter pelo menos 1 caractere',
         usuarios: []
       }, { status: 400 });
     }

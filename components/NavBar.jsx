@@ -98,7 +98,7 @@ export default function NavBar() {
                   {(session?.user?.role === 'modelo' || session?.user?.role === 'admin') && (
                     <NavLink href="/carteiras">Carteiras</NavLink>
                   )}
-                  <NavLink href="/copytrading">CopyTrading</NavLink>
+                  <NavLink href="/copytrading">SuperQuantBot</NavLink>
                   <NavLink href="/">Dashboard</NavLink>
                   {/* Links de administração - apenas para admins */}
                   {session?.user?.role === 'admin' && (
@@ -107,13 +107,7 @@ export default function NavBar() {
                     </NavLink>
                   )}
                   <NavLink href="/historico">Histórico</NavLink>
-                  <NavLink href="/margem">Margem</NavLink>
                   <NavLink href="/operacoes">Minhas Operações</NavLink>
-                  <NavLink href="/plano-trade">
-                    <span className="whitespace-nowrap">
-                      Plano de<br />Trading
-                    </span>
-                  </NavLink>
                   <NavLink href="/quant">Quant</NavLink>
                   <NavLink href="/relatorios">Relatórios</NavLink>
                 </>
@@ -207,7 +201,7 @@ export default function NavBar() {
               {(session?.user?.role === 'modelo' || session?.user?.role === 'admin') && (
                 <MobileNavLink href="/carteiras">Carteiras</MobileNavLink>
               )}
-              <MobileNavLink href="/copytrading">CopyTrading</MobileNavLink>
+              <MobileNavLink href="/copytrading">SuperQuantBot</MobileNavLink>
               <MobileNavLink href="/">Dashboard</MobileNavLink>
               {/* Admin links para mobile */}
               {session?.user?.role === 'admin' && (
@@ -216,10 +210,8 @@ export default function NavBar() {
                 </MobileNavLink>
               )}
               <MobileNavLink href="/historico">Histórico</MobileNavLink>
-              <MobileNavLink href="/margem">Margem</MobileNavLink>
               <MobileNavLink href="/perfil">Meu Perfil</MobileNavLink>
               <MobileNavLink href="/operacoes">Minhas Operações</MobileNavLink>
-              <MobileNavLink href="/plano-trade">Plano de Trading</MobileNavLink>
               <MobileNavLink href="/quant">Quant</MobileNavLink>
               <MobileNavLink href="/relatorios">Relatórios</MobileNavLink>
               
