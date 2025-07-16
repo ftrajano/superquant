@@ -1,10 +1,19 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import NavBar from '@/components/NavBar';
 
-export default function DemoCheckout() {
+// Componente de carregamento para o Suspense
+const LoadingUI = () => (
+  <div className="text-center py-8">
+    <div className="animate-spin h-8 w-8 border-4 border-blue-500 border-t-transparent rounded-full mx-auto mb-4"></div>
+    <p>Carregando...</p>
+  </div>
+);
+
+// Componente que usa useSearchParams
+const DemoCheckoutContent = () => {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [processing, setProcessing] = useState(false);
@@ -149,5 +158,14 @@ export default function DemoCheckout() {
         </div>
       </div>
     </div>
+  );
+};
+
+// Componente wrapper com Suspense
+export default function DemoCheckout() {
+  return (
+    <Suspense fallback={<LoadingUI />}>
+      <DemoCheckoutContent />
+    </Suspense>
   );
 }

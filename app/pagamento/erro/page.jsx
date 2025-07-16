@@ -1,11 +1,20 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import NavBar from '@/components/NavBar';
 
-export default function PagamentoErro() {
+// Componente de carregamento para o Suspense
+const LoadingUI = () => (
+  <div className="text-center py-8">
+    <div className="animate-spin h-8 w-8 border-4 border-blue-500 border-t-transparent rounded-full mx-auto mb-4"></div>
+    <p>Carregando...</p>
+  </div>
+);
+
+// Componente que usa useSearchParams
+const PagamentoErroContent = () => {
   const searchParams = useSearchParams();
   const [errorInfo, setErrorInfo] = useState(null);
 
@@ -121,5 +130,14 @@ export default function PagamentoErro() {
         </div>
       </div>
     </div>
+  );
+};
+
+// Componente wrapper com Suspense
+export default function PagamentoErro() {
+  return (
+    <Suspense fallback={<LoadingUI />}>
+      <PagamentoErroContent />
+    </Suspense>
   );
 }

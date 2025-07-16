@@ -1,11 +1,20 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import NavBar from '@/components/NavBar';
 
-export default function PagamentoPendente() {
+// Componente de carregamento para o Suspense
+const LoadingUI = () => (
+  <div className="text-center py-8">
+    <div className="animate-spin h-8 w-8 border-4 border-blue-500 border-t-transparent rounded-full mx-auto mb-4"></div>
+    <p>Carregando...</p>
+  </div>
+);
+
+// Componente que usa useSearchParams
+const PagamentoPendenteContent = () => {
   const searchParams = useSearchParams();
   const [paymentInfo, setPaymentInfo] = useState(null);
 
@@ -124,5 +133,14 @@ export default function PagamentoPendente() {
         </div>
       </div>
     </div>
+  );
+};
+
+// Componente wrapper com Suspense
+export default function PagamentoPendente() {
+  return (
+    <Suspense fallback={<LoadingUI />}>
+      <PagamentoPendenteContent />
+    </Suspense>
   );
 }
