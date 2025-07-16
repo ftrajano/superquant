@@ -81,7 +81,19 @@ export default function QuantPage() {
       }
     } catch (err) {
       console.error('Erro ao buscar dados da opção:', err);
-      setError(err.message || 'Erro ao buscar dados da opção');
+      
+      // Tratamento específico para diferentes tipos de erro
+      let errorMessage = 'Erro ao buscar dados da opção';
+      
+      if (err.message.includes('Símbolo não encontrado')) {
+        errorMessage = `Símbolo "${symbol}" não encontrado. Verifique se o código está correto.`;
+      } else if (err.message.includes('Não autorizado')) {
+        errorMessage = 'Você precisa estar logado para acessar esta funcionalidade.';
+      } else if (err.message.includes('Erro interno do servidor')) {
+        errorMessage = 'Erro temporário no servidor. Tente novamente em alguns instantes.';
+      }
+      
+      setError(errorMessage);
       setOptionDetails(null);
       setBsData(null);
     } finally {

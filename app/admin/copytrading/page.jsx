@@ -5,7 +5,7 @@ import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import NavBar from '@/components/NavBar';
 
-export default function AdminSuperQuantBotPage() {
+export default function AdminSuperQuantIAPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
   
@@ -120,7 +120,7 @@ export default function AdminSuperQuantBotPage() {
         origem: 'copytrading'
       });
       
-      setSuccess('Operação do SuperQuantBot criada com sucesso!');
+      setSuccess('Operação do SuperQuant.IA criada com sucesso!');
       
     } catch (err) {
       console.error('Erro:', err);
@@ -150,8 +150,8 @@ export default function AdminSuperQuantBotPage() {
       <NavBar />
       <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-blue-800">Gerenciar SuperQuantBot</h1>
-          <p className="text-gray-600 mt-2">Adicione operações ao modelo do SuperQuantBot</p>
+          <h1 className="text-3xl font-bold text-blue-800">Gerenciar SuperQuant.IA</h1>
+          <p className="text-gray-600 mt-2">Adicione operações ao modelo do SuperQuant.IA</p>
         </div>
         
         {error && (
@@ -167,7 +167,7 @@ export default function AdminSuperQuantBotPage() {
         )}
         
         <div className="bg-white p-6 rounded-lg shadow-md">
-          <h2 className="text-xl font-semibold text-blue-800 mb-4">Nova Operação SuperQuantBot</h2>
+          <h2 className="text-xl font-semibold text-blue-800 mb-4">Nova Operação SuperQuant.IA</h2>
           <form onSubmit={handleSubmit}>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
               <div>
@@ -302,7 +302,7 @@ export default function AdminSuperQuantBotPage() {
                 className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
                 disabled={isSubmitting}
               >
-                {isSubmitting ? 'Criando...' : 'Criar Operação SuperQuantBot'}
+                {isSubmitting ? 'Criando...' : 'Criar Operação SuperQuant.IA'}
               </button>
             </div>
           </form>

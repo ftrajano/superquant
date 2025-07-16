@@ -98,7 +98,7 @@ export default function NavBar() {
                   {(session?.user?.role === 'modelo' || session?.user?.role === 'admin') && (
                     <NavLink href="/carteiras">Carteiras</NavLink>
                   )}
-                  <NavLink href="/copytrading">SuperQuantBot</NavLink>
+                  <NavLink href="/copytrading">SuperQuant.IA</NavLink>
                   <NavLink href="/">Dashboard</NavLink>
                   {/* Links de administração - apenas para admins */}
                   {session?.user?.role === 'admin' && (
@@ -110,6 +110,7 @@ export default function NavBar() {
                   <NavLink href="/operacoes">Minhas Operações</NavLink>
                   <NavLink href="/quant">Quant</NavLink>
                   <NavLink href="/relatorios">Relatórios</NavLink>
+                  <NavLink href="/assinatura">Assinatura</NavLink>
                 </>
               )}
             </div>
@@ -201,7 +202,7 @@ export default function NavBar() {
               {(session?.user?.role === 'modelo' || session?.user?.role === 'admin') && (
                 <MobileNavLink href="/carteiras">Carteiras</MobileNavLink>
               )}
-              <MobileNavLink href="/copytrading">SuperQuantBot</MobileNavLink>
+              <MobileNavLink href="/copytrading">SuperQuant.IA</MobileNavLink>
               <MobileNavLink href="/">Dashboard</MobileNavLink>
               {/* Admin links para mobile */}
               {session?.user?.role === 'admin' && (
@@ -214,6 +215,7 @@ export default function NavBar() {
               <MobileNavLink href="/operacoes">Minhas Operações</MobileNavLink>
               <MobileNavLink href="/quant">Quant</MobileNavLink>
               <MobileNavLink href="/relatorios">Relatórios</MobileNavLink>
+              <MobileNavLink href="/assinatura">Assinatura</MobileNavLink>
               
               <div className="flex items-center pl-3 pr-4 py-2">
                 <ThemeToggleButton mobile />

@@ -77,6 +77,14 @@ const OperacoesContent = () => {
   const [fechamentoParcial, setFechamentoParcial] = useState(false);
   const [isSubmittingFechar, setIsSubmittingFechar] = useState(false);
   const [statusFiltro, setStatusFiltro] = useState('Todos');
+  
+  // Estado para plano de trading
+  const [planoTrading, setPlanoTrading] = useState({
+    valorMensal: 0,
+    capitalDisponivel: 0,
+    percentualReserva: 20,
+    percentualPorOperacao: 25
+  });
 
   // Estados para seleção de cesta de operações
   const [cestalSelecionada, setCestaSeleccionada] = useState([]);
@@ -114,6 +122,19 @@ const OperacoesContent = () => {
     }
   }, [status, router]);
 
+  // Carregar plano de trading
+  const carregarPlanoTrading = async () => {
+    try {
+      const response = await fetch('/api/plano-trading');
+      if (response.ok) {
+        const data = await response.json();
+        setPlanoTrading(data);
+      }
+    } catch (error) {
+      console.error('Erro ao carregar plano de trading:', error);
+    }
+  };
+
   // Carregar operações ao mudar o mês, ano ou o filtro de status
   useEffect(() => {
     const fetchOperacoes = async () => {
@@ -124,6 +145,9 @@ const OperacoesContent = () => {
       
       setIsLoading(true);
       setError(null);
+      
+      // Carregar plano de trading
+      await carregarPlanoTrading();
       
       try {
         console.log(`Buscando operações para Mês: ${mesAtivo}, Ano: ${anoAtivo}, Filtro: ${statusFiltro}`);
@@ -269,6 +293,30 @@ const OperacoesContent = () => {
       // Para compras, consideramos o valor negativo, para vendas positivo
       const valor = (op.direcao === 'COMPRA' ? -1 : 1) * (op.valorTotal || op.preco * (op.quantidade || 1) || 0);
       return total + valor;
+    }, 0);
+  };
+
+  const calcularMargemUtilizadaMes = () => {
+    // Filtra operações do mês atual (abertas e fechadas)
+    const operacoesMes = operacoes.filter(op => {
+      // Se for "todas", considerar todas operações do ano
+      if (mesAtivo === 'todas') {
+        return op.anoReferencia?.toString() === anoAtivo?.toString();
+      }
+      
+      // Caso contrário, filtrar pelo mês e ano específicos
+      return op.mesReferencia?.toLowerCase() === mesAtivo?.toLowerCase() && 
+             op.anoReferencia?.toString() === anoAtivo?.toString();
+    });
+    
+    // Calcula a margem utilizada considerando apenas compras (valores que reduzem a margem disponível)
+    return operacoesMes.reduce((total, op) => {
+      // Apenas compras reduzem a margem disponível
+      if (op.direcao === 'COMPRA') {
+        const valor = op.valorTotal || op.preco * (op.quantidade || 1) || 0;
+        return total + valor;
+      }
+      return total;
     }, 0);
   };
   
@@ -789,6 +837,7 @@ const OperacoesContent = () => {
           </button>
         </div>
       </div>
+
       
       {/* Seletor de Ano */}
       <YearSelector
@@ -875,6 +924,38 @@ const OperacoesContent = () => {
               {formatarMoeda(calcularSaldoCesta())}
             </div>
           </div>
+
+          {/* Painel Compacto de Plano de Trading */}
+          {planoTrading.valorMensal > 0 && (
+            <div className="flex items-center px-3 py-2 rounded shadow-sm bg-[var(--surface-card)]">
+              <div className="mr-2 text-xs text-[var(--text-secondary)]">Margem Mensal Disponível:</div>
+              <div className="font-semibold text-sm text-[var(--primary)]">
+                {new Intl.NumberFormat('pt-BR', {
+                  style: 'currency',
+                  currency: 'BRL'
+                }).format(planoTrading.valorMensal - calcularMargemUtilizadaMes())}
+              </div>
+              <Link 
+                href="/plano-trade"
+                className="ml-2 text-xs text-[var(--primary)] hover:text-[var(--primary-hover)]"
+              >
+                ⚙️
+              </Link>
+            </div>
+          )}
+
+          {/* Mensagem compacta se não há plano configurado */}
+          {planoTrading.valorMensal === 0 && (
+            <div className="flex items-center px-3 py-2 rounded shadow-sm bg-yellow-100 dark:bg-yellow-900/20">
+              <div className="mr-2 text-xs text-yellow-700 dark:text-yellow-300">Plano de trading:</div>
+              <Link 
+                href="/plano-trade"
+                className="text-xs text-yellow-700 dark:text-yellow-300 hover:text-yellow-800 dark:hover:text-yellow-200"
+              >
+                Configurar
+              </Link>
+            </div>
+          )}
         </div>
         
         {/* Ações da Cesta */}

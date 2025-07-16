@@ -20,7 +20,7 @@ const LoadingUI = () => (
 );
 
 // Componente principal com useSearchParams dentro do Suspense
-const SuperQuantBotContent = () => {
+const SuperQuantIAContent = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const mesAtivo = searchParams.get('mes') || (() => {
@@ -292,7 +292,7 @@ const SuperQuantBotContent = () => {
       
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-[var(--primary)]">SuperQuantBot</h1>
+          <h1 className="text-2xl font-bold text-[var(--primary)]">SuperQuant.IA</h1>
           <p className="text-[var(--text-secondary)]">Operações dos usuários modelo para você se inspirar</p>
           <div className="mt-2 text-sm text-[var(--text-tertiary)]">
             Todas as operações realizadas pelos usuários com papel "modelo" aparecem automaticamente aqui.
@@ -505,7 +505,7 @@ const SuperQuantBotContent = () => {
         <>
           {operacoes.length === 0 ? (
             <div className="text-center py-8 bg-[var(--surface-secondary)] rounded-lg">
-              <p className="text-[var(--text-secondary)]">Nenhuma operação do SuperQuantBot encontrada para {mesAtivo}.</p>
+              <p className="text-[var(--text-secondary)]">Nenhuma operação do SuperQuant.IA encontrada para {mesAtivo}.</p>
             </div>
           ) : (
             <div className="bg-[var(--surface-card)] rounded-lg shadow overflow-hidden">
@@ -689,10 +689,10 @@ const SuperQuantBotContent = () => {
 }
 
 // Componente wrapper com Suspense
-export default function SuperQuantBotPage() {
+export default function SuperQuantIAPage() {
   return (
     <Suspense fallback={<LoadingUI />}>
-      <SuperQuantBotContent />
+      <SuperQuantIAContent />
     </Suspense>
   );
 }

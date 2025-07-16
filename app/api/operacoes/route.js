@@ -55,7 +55,7 @@ export async function GET(request) {
     
     // Filtrar operações baseado na origem da solicitação
     if (origem === 'copytrading') {
-      // Para a seção de SuperQuantBot, buscar operações de usuários modelo
+      // Para a seção de SuperQuant.IA, buscar operações de usuários modelo
       // Primeiro, precisamos buscar todos os usuários com papel 'modelo'
       const modelUsers = await User.find({ role: 'modelo' }).select('_id');
       const modelUserIds = modelUsers.map(user => user._id);
@@ -88,7 +88,7 @@ export async function GET(request) {
     // Opções diferentes dependendo da origem
     let operacoes;
     if (origem === 'copytrading') {
-      // Para SuperQuantBot, inclua informações do usuário modelo
+      // Para SuperQuant.IA, inclua informações do usuário modelo
       operacoes = await Operacao.find(query)
         .populate('userId', 'name') // Popula o nome do usuário que criou
         .sort({ createdAt: -1 });
@@ -123,8 +123,8 @@ export async function POST(request) {
       );
     }
     
-    // Não precisamos mais verificar permissão especial para SuperQuantBot,
-    // pois todas as operações dos usuários modelo são automaticamente expostas no SuperQuantBot
+    // Não precisamos mais verificar permissão especial para SuperQuant.IA,
+    // pois todas as operações dos usuários modelo são automaticamente expostas no SuperQuant.IA
     
     // Validações básicas
     if (!data.ticker) {

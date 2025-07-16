@@ -50,7 +50,7 @@ export default function Home() {
 
               <Link href="/copytrading" className="block bg-[var(--surface-card)] overflow-hidden rounded-lg shadow hover:shadow-lg transition-shadow duration-300">
                 <div className="p-6">
-                  <h3 className="text-xl font-semibold text-[var(--primary)]">SuperQuantBot</h3>
+                  <h3 className="text-xl font-semibold text-[var(--primary)]">SuperQuant.IA</h3>
                   <p className="mt-2 text-[var(--text-secondary)]">
                     Acesse operações modelo geradas pelo bot para se inspirar
                   </p>
@@ -224,7 +224,7 @@ export default function Home() {
               <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
                 <div className="text-center p-6 border border-[var(--surface-border)] rounded-lg hover:shadow-lg transition-shadow">
                   <div className="text-4xl mb-4">🤖</div>
-                  <h3 className="text-xl font-semibold text-[var(--foreground)] mb-3">SuperQuantBot</h3>
+                  <h3 className="text-xl font-semibold text-[var(--foreground)] mb-3">SuperQuant.IA</h3>
                   <p className="text-[var(--text-secondary)]">
                     Operações geradas por IA para inspirar suas estratégias. 
                     Aprenda com algoritmos que analisam o mercado 24/7.

@@ -25,7 +25,15 @@ export async function GET(request) {
     }
 
     // Token de acesso para a API OpLab
-    const accessToken = 'rcBq4SWZoVowKYNOpbShRiXxrnKei6bQUSNpuz3MQ0n0yraAaRif/SRXFio0HydW--okWg9cNmiL8Sh1f25fgH1g==--ZmIyMjA1NDg3MzU3MWU4ZjI0ZWE5NzA4NTlhOGFiNmY=';
+    const accessToken = process.env.OPLAB_ACCESS_TOKEN;
+    
+    if (!accessToken) {
+      return NextResponse.json(
+        { error: 'Token de acesso da API OpLab não configurado' },
+        { status: 500 }
+      );
+    }
+    
     const apiUrl = `https://api.oplab.com.br/v3/market/options/details/${symbol}`;
 
     // Fazer a solicitação para a API externa
@@ -36,6 +44,14 @@ export async function GET(request) {
         'Access-Token': accessToken
       },
     });
+
+    // Tratar status 204 (No Content) - símbolo não encontrado
+    if (response.status === 204) {
+      return NextResponse.json(
+        { error: 'Símbolo não encontrado ou sem dados disponíveis' },
+        { status: 404 }
+      );
+    }
 
     if (!response.ok) {
       // Se a API externa retornar erro, retransmitimos para o cliente

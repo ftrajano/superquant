@@ -59,6 +59,11 @@ export async function PUT(request) {
       return NextResponse.json({ error: 'Percentual por operação deve estar entre 0 e 100' }, { status: 400 });
     }
 
+    // Calcular valor mensal
+    const reserva = (capitalDisponivel * percentualReserva) / 100;
+    const capitalParaTrade = capitalDisponivel - reserva;
+    const valorMensal = capitalParaTrade / 6; // Dividir por 6 meses
+
     // Atualizar plano de trading do usuário
     const user = await User.findByIdAndUpdate(
       session.user.id,
@@ -67,7 +72,8 @@ export async function PUT(request) {
           'planoTrading.capitalDisponivel': capitalDisponivel,
           'planoTrading.percentualReserva': percentualReserva,
           'planoTrading.percentualPorOperacao': percentualPorOperacao,
-          'planoTrading.ultimaAtualizacao': new Date()
+          'planoTrading.valorMensal': valorMensal,
+          'planoTrading.updatedAt': new Date()
         }
       },
       { new: true, upsert: true }
@@ -76,6 +82,14 @@ export async function PUT(request) {
     if (!user) {
       return NextResponse.json({ error: 'Usuário não encontrado' }, { status: 404 });
     }
+
+    console.log('Plano de trading atualizado:', {
+      userId: session.user.id,
+      capitalDisponivel,
+      percentualReserva,
+      percentualPorOperacao,
+      valorMensal
+    });
 
     return NextResponse.json({
       message: 'Plano de trading salvo com sucesso',
