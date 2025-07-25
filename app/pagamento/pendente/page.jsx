@@ -17,6 +17,8 @@ const LoadingUI = () => (
 const PagamentoPendenteContent = () => {
   const searchParams = useSearchParams();
   const [paymentInfo, setPaymentInfo] = useState(null);
+  const [checkingPayment, setCheckingPayment] = useState(false);
+  const [paymentStatus, setPaymentStatus] = useState('pending');
 
   const planId = searchParams.get('plan');
   const paymentId = searchParams.get('payment_id');
@@ -24,15 +26,17 @@ const PagamentoPendenteContent = () => {
   useEffect(() => {
     if (planId) {
       const planNames = {
-        basic: 'Plano Básico',
-        premium: 'Plano Premium', 
-        pro: 'Plano Profissional'
+        test: 'Teste - R$ 1,00',
+        monthly: 'Plano Mensal',
+        quarterly: 'Plano Trimestral',
+        yearly: 'Plano Anual'
       };
 
       const planPrices = {
-        basic: 29.90,
-        premium: 59.90,
-        pro: 99.90
+        test: 1.00,
+        monthly: 117.00,
+        quarterly: 329.00,
+        yearly: 1297.00
       };
 
       setPaymentInfo({
@@ -42,6 +46,43 @@ const PagamentoPendenteContent = () => {
       });
     }
   }, [planId, paymentId]);
+
+  // Verificar status do pagamento a cada 10 segundos
+  useEffect(() => {
+    if (!paymentId) return;
+
+    const checkPaymentStatus = async () => {
+      try {
+        setCheckingPayment(true);
+        const response = await fetch('/api/subscription/check', {
+          method: 'GET'
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          if (data.hasActiveSubscription) {
+            setPaymentStatus('approved');
+            // Redirecionar para página de sucesso após 2 segundos
+            setTimeout(() => {
+              window.location.href = `/pagamento/sucesso?plan=${planId}&payment_id=${paymentId}&status=approved`;
+            }, 2000);
+          }
+        }
+      } catch (error) {
+        console.error('Erro ao verificar status:', error);
+      } finally {
+        setCheckingPayment(false);
+      }
+    };
+
+    // Verificar imediatamente
+    checkPaymentStatus();
+
+    // Verificar a cada 10 segundos
+    const interval = setInterval(checkPaymentStatus, 10000);
+
+    return () => clearInterval(interval);
+  }, [paymentId, planId]);
 
   return (
     <div className="min-h-screen bg-[var(--surface-bg)]">
@@ -57,12 +98,21 @@ const PagamentoPendenteContent = () => {
           </div>
 
           <h1 className="text-3xl font-bold text-[var(--text-primary)] mb-4">
-            Pagamento em Processamento
+            {paymentStatus === 'approved' ? 'Pagamento Aprovado!' : 'Pagamento em Processamento'}
           </h1>
 
           <p className="text-lg text-[var(--text-secondary)] mb-6">
-            Seu pagamento está sendo processado. Você receberá uma confirmação em breve.
+            {paymentStatus === 'approved' 
+              ? 'Seu pagamento foi aprovado! Redirecionando...' 
+              : 'Seu pagamento está sendo processado. Você receberá uma confirmação em breve.'}
           </p>
+
+          {checkingPayment && (
+            <div className="flex items-center justify-center mb-4">
+              <div className="animate-spin h-5 w-5 border-2 border-blue-500 border-t-transparent rounded-full mr-2"></div>
+              <span className="text-sm text-[var(--text-secondary)]">Verificando pagamento...</span>
+            </div>
+          )}
 
           {paymentInfo && (
             <div className="bg-[var(--surface-bg)] rounded-lg p-6 mb-6">
@@ -86,7 +136,9 @@ const PagamentoPendenteContent = () => {
                 )}
                 <div className="flex justify-between">
                   <span>Status:</span>
-                  <span className="font-medium text-yellow-600">Em processamento</span>
+                  <span className={`font-medium ${paymentStatus === 'approved' ? 'text-green-600' : 'text-yellow-600'}`}>
+                    {paymentStatus === 'approved' ? 'Aprovado' : 'Em processamento'}
+                  </span>
                 </div>
               </div>
             </div>
@@ -108,14 +160,14 @@ const PagamentoPendenteContent = () => {
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link
                 href="/"
-                className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-[var(--primary)] hover:bg-[var(--primary-hover)] transition-colors"
+                className="inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-[var(--primary)] hover:bg-[var(--primary-hover)] transition-colors"
               >
                 Ir para o Dashboard
               </Link>
               
               <button
                 onClick={() => window.location.reload()}
-                className="inline-flex items-center px-6 py-3 border border-[var(--primary)] text-base font-medium rounded-md text-[var(--primary)] bg-transparent hover:bg-[var(--primary-bg)] transition-colors"
+                className="inline-flex items-center justify-center px-6 py-3 border border-[var(--primary)] text-base font-medium rounded-md text-[var(--primary)] bg-transparent hover:bg-[var(--primary-bg)] transition-colors"
               >
                 Verificar Status
               </button>
