@@ -25,15 +25,18 @@ const DemoCheckoutContent = () => {
   useEffect(() => {
     if (planId) {
       const planData = {
-        basic: { name: 'Plano Básico', price: 29.90 },
-        premium: { name: 'Plano Premium', price: 59.90 },
-        pro: { name: 'Plano Profissional', price: 99.90 }
+        monthly: { name: 'Plano Mensal', price: 117.00 },
+        quarterly: { name: 'Plano Trimestral', price: 329.00 },
+        yearly: { name: 'Plano Anual', price: 1297.00 }
       };
 
-      setPaymentInfo({
-        ...planData[planId],
-        preferenceId
-      });
+      const selectedPlan = planData[planId];
+      if (selectedPlan) {
+        setPaymentInfo({
+          ...selectedPlan,
+          preferenceId
+        });
+      }
     }
   }, [planId, preferenceId]);
 
@@ -80,12 +83,12 @@ const DemoCheckoutContent = () => {
               <div className="space-y-2">
                 <div className="flex justify-between">
                   <span className="text-[var(--text-secondary)]">Produto:</span>
-                  <span className="font-medium text-[var(--text-primary)]">{paymentInfo.name}</span>
+                  <span className="font-medium text-[var(--text-primary)]">{paymentInfo?.name || 'Plano'}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-[var(--text-secondary)]">Valor:</span>
                   <span className="font-medium text-[var(--text-primary)]">
-                    R$ {paymentInfo.price.toFixed(2).replace('.', ',')}
+                    R$ {paymentInfo?.price?.toFixed(2).replace('.', ',') || '0,00'}
                   </span>
                 </div>
                 <div className="flex justify-between text-sm">

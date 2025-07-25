@@ -38,10 +38,19 @@ const CarteiraContent = ({ params }) => {
     'todas': 'todas'
   };
   
+  // Obter mês atual
+  const getMesAtual = () => {
+    const mesesNomes = [
+      'janeiro', 'fevereiro', 'marco', 'abril', 'maio', 'junho',
+      'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'
+    ];
+    return mesesNomes[new Date().getMonth()];
+  };
+  
   // Normalizar o mês para garantir que seja um dos valores válidos
   const mesAtivo = mesParam ? 
-    (mesesValidos[mesParam.toLowerCase()] || 'abril') : 
-    'abril';
+    (mesesValidos[mesParam.toLowerCase()] || getMesAtual()) : 
+    getMesAtual();
   
   const anoAtivo = searchParams.get('ano') || new Date().getFullYear().toString();
   

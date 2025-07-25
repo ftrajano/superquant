@@ -38,10 +38,11 @@ export async function POST(request) {
       }
     ];
 
-    // Dados do pagador
+    // Dados do pagador - usar email de teste quando em ambiente de teste
+    const isTestEnvironment = process.env.MERCADOPAGO_ACCESS_TOKEN?.startsWith('TEST-');
     const payer = {
       name: session.user.name,
-      email: session.user.email
+      email: isTestEnvironment ? 'test@testuser.com' : session.user.email
     };
 
     // URLs de retorno personalizadas
@@ -66,7 +67,7 @@ export async function POST(request) {
     return NextResponse.json({
       success: true,
       preferenceId: preference.id,
-      initPoint: preference.init_point,
+      initPoint: isTestEnvironment ? preference.sandbox_init_point : preference.init_point,
       sandboxInitPoint: preference.sandbox_init_point,
       plan: plan
     });

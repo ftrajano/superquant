@@ -130,7 +130,7 @@ export default function AssinaturaPage() {
             <div
               key={plan.id}
               className={`relative bg-[var(--surface-card)] rounded-2xl shadow-lg p-8 ${
-                plan.popular ? 'ring-2 ring-[var(--primary)] scale-105' : ''
+                plan.popular ? 'ring-2 ring-[var(--primary)]' : ''
               }`}
             >
               {plan.popular && (

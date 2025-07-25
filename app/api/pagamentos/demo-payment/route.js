@@ -12,11 +12,11 @@ export async function POST(request) {
 
     const { planId } = await request.json();
 
-    // Planos de demonstração
+    // Planos de demonstração (iguais aos reais)
     const demoPlans = {
-      basic: { name: 'Plano Básico', price: 29.90 },
-      premium: { name: 'Plano Premium', price: 59.90 },
-      pro: { name: 'Plano Profissional', price: 99.90 }
+      monthly: { name: 'Plano Mensal', price: 117.00 },
+      quarterly: { name: 'Plano Trimestral', price: 329.00 },
+      yearly: { name: 'Plano Anual', price: 1297.00 }
     };
 
     const plan = demoPlans[planId];
