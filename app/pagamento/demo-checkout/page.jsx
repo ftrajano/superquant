@@ -25,6 +25,7 @@ const DemoCheckoutContent = () => {
   useEffect(() => {
     if (planId) {
       const planData = {
+        test: { name: 'Teste - R$ 1,00', price: 1.00 },
         monthly: { name: 'Plano Mensal', price: 117.00 },
         quarterly: { name: 'Plano Trimestral', price: 329.00 },
         yearly: { name: 'Plano Anual', price: 1297.00 }

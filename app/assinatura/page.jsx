@@ -1,11 +1,27 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useSession } from 'next-auth/react';
+import { useSearchParams } from 'next/navigation';
 import NavBar from '@/components/NavBar';
 import MercadoPagoCheckout from '@/components/MercadoPagoCheckout';
 
 const plans = {
+  test: {
+    id: 'test',
+    name: 'Teste - R$ 1,00',
+    description: 'Plano para teste de pagamento',
+    price: 1.00,
+    currency: 'BRL',
+    duration: '1 mês',
+    popular: false,
+    savings: null,
+    features: [
+      'Acesso completo por 1 mês',
+      'Apenas para teste de pagamento',
+      'Todas as funcionalidades incluídas'
+    ]
+  },
   monthly: {
     id: 'monthly',
     name: 'Plano Mensal',
@@ -71,9 +87,25 @@ const plans = {
   }
 };
 
-export default function AssinaturaPage() {
+// Componente que usa useSearchParams
+function AssinaturaContent() {
   const { data: session } = useSession();
+  const searchParams = useSearchParams();
   const [selectedPlan, setSelectedPlan] = useState(null);
+  const [showRedirectMessage, setShowRedirectMessage] = useState(false);
+
+  const fromPage = searchParams.get('from');
+
+  useEffect(() => {
+    if (fromPage) {
+      setShowRedirectMessage(true);
+      // Ocultar mensagem após 5 segundos
+      const timer = setTimeout(() => {
+        setShowRedirectMessage(false);
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [fromPage]);
 
   const handleSelectPlan = (plan) => {
     setSelectedPlan(plan);
@@ -114,6 +146,27 @@ export default function AssinaturaPage() {
       <NavBar />
       
       <div className="max-w-6xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+        {/* Mensagem de redirecionamento */}
+        {showRedirectMessage && (
+          <div className="mb-8 mx-auto max-w-2xl">
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+              <div className="flex items-center">
+                <svg className="w-5 h-5 text-yellow-600 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                </svg>
+                <div>
+                  <h3 className="text-sm font-medium text-yellow-800">
+                    Assinatura Necessária
+                  </h3>
+                  <p className="text-sm text-yellow-700 mt-1">
+                    Para acessar essa funcionalidade, você precisa escolher um plano de assinatura.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Header */}
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold text-[var(--text-primary)] mb-4">
@@ -234,5 +287,25 @@ export default function AssinaturaPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+// Componente de loading
+const LoadingUI = () => (
+  <div className="min-h-screen bg-[var(--surface-bg)]">
+    <NavBar />
+    <div className="max-w-6xl mx-auto py-12 px-4 text-center">
+      <div className="animate-spin h-8 w-8 border-4 border-blue-500 border-t-transparent rounded-full mx-auto mb-4"></div>
+      <p>Carregando planos...</p>
+    </div>
+  </div>
+);
+
+// Componente principal com Suspense
+export default function AssinaturaPage() {
+  return (
+    <Suspense fallback={<LoadingUI />}>
+      <AssinaturaContent />
+    </Suspense>
   );
 }

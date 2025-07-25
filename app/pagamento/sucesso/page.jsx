@@ -19,24 +19,30 @@ const PagamentoSucessoContent = () => {
   const { data: session } = useSession();
   const searchParams = useSearchParams();
   const [paymentInfo, setPaymentInfo] = useState(null);
+  const [activatingSubscription, setActivatingSubscription] = useState(false);
+  const [subscriptionActivated, setSubscriptionActivated] = useState(false);
+  const [error, setError] = useState(null);
 
   const planId = searchParams.get('plan');
   const paymentId = searchParams.get('payment_id');
   const status = searchParams.get('status');
+  const preferenceId = searchParams.get('preference_id');
 
   useEffect(() => {
-    // Simular informações do pagamento baseado no plano
+    // Informações dos planos atualizadas
     if (planId) {
       const planNames = {
-        basic: 'Plano Básico',
-        premium: 'Plano Premium', 
-        pro: 'Plano Profissional'
+        test: 'Teste - R$ 1,00',
+        monthly: 'Plano Mensal',
+        quarterly: 'Plano Trimestral',
+        yearly: 'Plano Anual'
       };
 
       const planPrices = {
-        basic: 29.90,
-        premium: 59.90,
-        pro: 99.90
+        test: 1.00,
+        monthly: 117.00,
+        quarterly: 329.00,
+        yearly: 1297.00
       };
 
       setPaymentInfo({
@@ -44,8 +50,66 @@ const PagamentoSucessoContent = () => {
         planPrice: planPrices[planId] || 0,
         paymentId: paymentId
       });
+
+      // Ativar assinatura automaticamente (demo ou real)
+      if (paymentId) {
+        activateSubscriptionDemo();
+      }
     }
   }, [planId, paymentId]);
+
+  // Função para ativar assinatura em modo demo
+  const activateSubscriptionDemo = async () => {
+    console.log('🔥 INICIANDO ATIVAÇÃO:', { 
+      userId: session?.user?.id, 
+      planId, 
+      paymentId,
+      activatingSubscription,
+      subscriptionActivated 
+    });
+    
+    if (!session?.user?.id || activatingSubscription || subscriptionActivated) {
+      console.log('❌ BLOQUEADO:', { 
+        hasUserId: !!session?.user?.id, 
+        userId: session?.user?.id,
+        activatingSubscription, 
+        subscriptionActivated,
+        session: session 
+      });
+      return;
+    }
+
+    setActivatingSubscription(true);
+    try {
+      const response = await fetch('/api/subscription/activate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          planId,
+          paymentData: {
+            mercadoPagoPaymentId: paymentId,
+            mercadoPagoPreferenceId: preferenceId
+            // Removido isDemo - agora vai validar pagamento real
+          }
+        })
+      });
+
+      const data = await response.json();
+      
+      if (response.ok) {
+        setSubscriptionActivated(true);
+      } else {
+        setError(data.error || 'Erro ao ativar assinatura');
+      }
+    } catch (error) {
+      console.error('Erro ao ativar assinatura:', error);
+      setError('Erro de conexão ao ativar assinatura');
+    } finally {
+      setActivatingSubscription(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-[var(--surface-bg)]">
@@ -64,9 +128,26 @@ const PagamentoSucessoContent = () => {
             Pagamento Realizado com Sucesso!
           </h1>
 
-          <p className="text-lg text-[var(--text-secondary)] mb-6">
-            Sua assinatura foi ativada e você já pode aproveitar todos os recursos do SuperQuant.
-          </p>
+          {activatingSubscription ? (
+            <div className="text-lg text-[var(--text-secondary)] mb-6">
+              <div className="flex items-center justify-center mb-2">
+                <div className="animate-spin h-5 w-5 border-2 border-blue-500 border-t-transparent rounded-full mr-2"></div>
+                Ativando sua assinatura...
+              </div>
+            </div>
+          ) : subscriptionActivated ? (
+            <p className="text-lg text-green-600 mb-6">
+              ✅ Sua assinatura foi ativada com sucesso! Você já pode aproveitar todos os recursos do SuperQuant.
+            </p>
+          ) : error ? (
+            <p className="text-lg text-red-600 mb-6">
+              ❌ {error}
+            </p>
+          ) : (
+            <p className="text-lg text-[var(--text-secondary)] mb-6">
+              Processando seu pagamento...
+            </p>
+          )}
 
           {paymentInfo && (
             <div className="bg-[var(--surface-bg)] rounded-lg p-6 mb-6">

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getPaymentStatus } from '../../../../lib/mercadopago';
 import { connectToDatabase } from '../../../../lib/db/mongodb';
 import User from '../../../../lib/models/User';
+import { activateSubscription, SUBSCRIPTION_PLANS } from '../../../../lib/subscription';
 
 export async function POST(request) {
   try {
@@ -49,55 +50,39 @@ async function processApprovedPayment(paymentData) {
       return;
     }
 
+    // Para ambiente de teste, usar o email real do usuário logado
+    let searchEmail = payerEmail;
+    if (payerEmail === 'test@testuser.com') {
+      // Em ambiente de teste, tentar encontrar pelo preference_id ou outras formas
+      console.log('Email de teste detectado, tentando encontrar usuário real...');
+      // Por enquanto, vamos pular a validação em ambiente de teste
+      return;
+    }
+
     // Buscar usuário pelo email
-    const user = await User.findOne({ email: payerEmail });
+    const user = await User.findOne({ email: searchEmail });
     if (!user) {
-      console.error('Usuário não encontrado:', payerEmail);
+      console.error('Usuário não encontrado:', searchEmail);
       return;
     }
 
     // Determinar o plano baseado no valor pago
-    let planType = 'monthly';
-    let duration = 1; // meses
     const amount = paymentData.transaction_amount;
+    let planId = 'monthly';
     
-    if (amount >= 1297.00) {
-      planType = 'yearly';
-      duration = 12;
-    } else if (amount >= 329.00) {
-      planType = 'quarterly';
-      duration = 3;
-    } else if (amount >= 117.00) {
-      planType = 'monthly';
-      duration = 1;
+    // Encontrar plano correspondente ao valor
+    for (const [id, plan] of Object.entries(SUBSCRIPTION_PLANS)) {
+      if (Math.abs(amount - plan.price) < 0.01) { // Tolerância para centavos
+        planId = id;
+        break;
+      }
     }
 
-    // Calcular data de expiração baseada na duração do plano
-    const expirationDate = new Date();
-    expirationDate.setMonth(expirationDate.getMonth() + duration);
-
-    // Atualizar usuário com informações da assinatura
-    await User.findByIdAndUpdate(user._id, {
-      subscription: {
-        plan: planType,
-        status: 'active',
-        startDate: new Date(),
-        expirationDate: expirationDate,
-        mercadoPagoPaymentId: paymentData.id,
-        lastPaymentAmount: amount,
-        lastPaymentDate: new Date()
-      },
-      updatedAt: new Date()
-    });
-
-    // Log do processamento
-    console.log('Assinatura ativada:', {
-      userId: user._id,
-      userEmail: payerEmail,
-      plan: planType,
-      paymentId: paymentData.id,
-      amount: amount,
-      expirationDate: expirationDate
+    // Ativar assinatura usando a função utilitária - CHAMADA INTERNA SEGURA
+    await activateSubscription(user._id, planId, {
+      mercadoPagoPaymentId: paymentData.id,
+      mercadoPagoPreferenceId: paymentData.additional_info?.external_reference,
+      isWebhookInternal: true // FLAG PARA IDENTIFICAR CHAMADA SEGURA
     });
 
     // TODO: Enviar email de confirmação
