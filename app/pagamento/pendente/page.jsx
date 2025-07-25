@@ -26,14 +26,12 @@ const PagamentoPendenteContent = () => {
   useEffect(() => {
     if (planId) {
       const planNames = {
-        test: 'Teste - R$ 1,00',
         monthly: 'Plano Mensal',
         quarterly: 'Plano Trimestral',
         yearly: 'Plano Anual'
       };
 
       const planPrices = {
-        test: 1.00,
         monthly: 117.00,
         quarterly: 329.00,
         yearly: 1297.00

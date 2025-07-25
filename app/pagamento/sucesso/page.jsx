@@ -32,14 +32,12 @@ const PagamentoSucessoContent = () => {
     // Informações dos planos atualizadas
     if (planId) {
       const planNames = {
-        test: 'Teste - R$ 1,00',
         monthly: 'Plano Mensal',
         quarterly: 'Plano Trimestral',
         yearly: 'Plano Anual'
       };
 
       const planPrices = {
-        test: 1.00,
         monthly: 117.00,
         quarterly: 329.00,
         yearly: 1297.00
@@ -191,7 +189,7 @@ const PagamentoSucessoContent = () => {
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link
                 href="/"
-                className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-[var(--primary)] hover:bg-[var(--primary-hover)] transition-colors"
+                className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-[var(--primary)] hover:bg-[var(--primary-hover)] transition-colors !text-white"
               >
                 Ir para o Dashboard
               </Link>

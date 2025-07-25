@@ -7,21 +7,6 @@ import NavBar from '@/components/NavBar';
 import MercadoPagoCheckout from '@/components/MercadoPagoCheckout';
 
 const plans = {
-  test: {
-    id: 'test',
-    name: 'Teste - R$ 1,00',
-    description: 'Plano para teste de pagamento',
-    price: 1.00,
-    currency: 'BRL',
-    duration: '1 mês',
-    popular: false,
-    savings: null,
-    features: [
-      'Acesso completo por 1 mês',
-      'Apenas para teste de pagamento',
-      'Todas as funcionalidades incluídas'
-    ]
-  },
   monthly: {
     id: 'monthly',
     name: 'Plano Mensal',
