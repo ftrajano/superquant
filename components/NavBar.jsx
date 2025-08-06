@@ -106,6 +106,12 @@ export default function NavBar() {
                       Gerenciar Usuários
                     </NavLink>
                   )}
+                  {/* Controle de assinaturas - para admin e modelo */}
+                  {(session?.user?.role === 'admin' || session?.user?.role === 'modelo') && (
+                    <NavLink href="/admin/assinaturas" isAdmin>
+                      Controle de Assinaturas
+                    </NavLink>
+                  )}
                   <NavLink href="/historico">Histórico</NavLink>
                   <NavLink href="/operacoes">Minhas Operações</NavLink>
                   <NavLink href="/quant">Quant</NavLink>
@@ -208,6 +214,12 @@ export default function NavBar() {
               {session?.user?.role === 'admin' && (
                 <MobileNavLink href="/admin/usuarios" isAdmin>
                   Gerenciar Usuários
+                </MobileNavLink>
+              )}
+              {/* Controle de assinaturas - para admin e modelo */}
+              {(session?.user?.role === 'admin' || session?.user?.role === 'modelo') && (
+                <MobileNavLink href="/admin/assinaturas" isAdmin>
+                  Controle de Assinaturas
                 </MobileNavLink>
               )}
               <MobileNavLink href="/historico">Histórico</MobileNavLink>

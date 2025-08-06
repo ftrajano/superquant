@@ -169,8 +169,35 @@ export async function GET(request) {
         }
       ];
       
-      // Adicionar as condições ao $or existente
-      queryOperacoesFechadas.$or = queryOperacoesFechadas.$or.concat(condicoesMesAno);
+      // Para mês específico: apenas operações fechadas DENTRO do mês completo
+      queryOperacoesFechadas.$or = [
+        // Operações referentes ao mês/ano específico com status "Fechada"
+        {
+          userId: userId,
+          mesReferencia: filtroConsulta.mesReferencia,
+          anoReferencia: filtroConsulta.anoReferencia,
+          status: 'Fechada'
+        },
+        // Operações fechadas DENTRO do mês completo (dia 1 ao último dia)
+        {
+          userId: userId,
+          dataFechamento: { $gte: inicioMes, $lte: fimMes },
+          status: 'Fechada'
+        },
+        // Operações resultantes de fechamento parcial, do mês/ano específico
+        {
+          userId: userId,
+          mesReferencia: filtroConsulta.mesReferencia,
+          anoReferencia: filtroConsulta.anoReferencia,
+          operacaoOriginalId: { $ne: null }
+        },
+        // Operações de fechamento parcial fechadas DENTRO do mês completo
+        {
+          userId: userId,
+          dataFechamento: { $gte: inicioMes, $lte: fimMes },
+          operacaoOriginalId: { $ne: null }
+        }
+      ];
     } else if (filtroConsulta.dataAbertura) {
       // Para filtros baseados em data, vamos considerar:
       // 1. Operações abertas E fechadas no período 
@@ -195,8 +222,21 @@ export async function GET(request) {
         }
       ];
       
-      // Adicionar as condições ao $or existente
-      queryOperacoesFechadas.$or = queryOperacoesFechadas.$or.concat(condicoesData);
+      // Adicionar condições de período diretamente
+      queryOperacoesFechadas.$or = [
+        // Operações fechadas que foram fechadas dentro do período
+        { 
+          userId: userId,
+          dataFechamento: { $gte: dataInicio, $lte: dataFim },
+          status: 'Fechada'
+        },
+        // Operações de fechamento parcial fechadas no período
+        {
+          userId: userId,
+          dataFechamento: { $gte: dataInicio, $lte: dataFim },
+          operacaoOriginalId: { $ne: null }
+        }
+      ];
     }
     
     console.log('Query para operações fechadas:', JSON.stringify(queryOperacoesFechadas));
@@ -403,9 +443,31 @@ export async function GET(request) {
     // === DADOS PARA OS GRÁFICOS ===
 
     // Calcular lucro acumulado ordenando operações por data de fechamento
-    const operacoesOrdenadas = [...operacoesParaMetricas]
-      .filter(op => op.dataFechamento)
-      .sort((a, b) => new Date(a.dataFechamento) - new Date(b.dataFechamento));
+    // Filtrar apenas operações dentro do período selecionado
+    let operacoesOrdenadas = [...operacoesParaMetricas]
+      .filter(op => op.dataFechamento);
+    
+    // Aplicar filtro de período para o gráfico
+    if (filtroConsulta.mesReferencia && filtroConsulta.anoReferencia) {
+      // Para mês específico, filtrar por período do mês
+      const mesIndex = mesesValidos.indexOf(filtroConsulta.mesReferencia);
+      const ano = filtroConsulta.anoReferencia;
+      const inicioMes = new Date(ano, mesIndex, 1);
+      const fimMes = new Date(ano, mesIndex + 1, 0, 23, 59, 59, 999);
+      
+      operacoesOrdenadas = operacoesOrdenadas.filter(op => {
+        const dataFech = new Date(op.dataFechamento);
+        return dataFech >= inicioMes && dataFech <= fimMes;
+      });
+    } else if (filtroConsulta.dataAbertura) {
+      // Para períodos por data, filtrar pelo período
+      operacoesOrdenadas = operacoesOrdenadas.filter(op => {
+        const dataFech = new Date(op.dataFechamento);
+        return dataFech >= dataInicio && dataFech <= dataFim;
+      });
+    }
+    
+    operacoesOrdenadas = operacoesOrdenadas.sort((a, b) => new Date(a.dataFechamento) - new Date(b.dataFechamento));
 
     let saldoAcumulado = 0;
     const lucroAcumulado = operacoesOrdenadas.map(op => {
