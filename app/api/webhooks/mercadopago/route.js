@@ -78,12 +78,24 @@ async function processApprovedPayment(paymentData) {
       }
     }
 
+    // Verificar se já foi processado (evitar dupla ativação)
+    const existingUser = await User.findOne({ 
+      'subscription.mercadoPagoPaymentId': paymentData.id 
+    });
+    
+    if (existingUser) {
+      console.log('Pagamento já processado anteriormente:', paymentData.id);
+      return;
+    }
+
     // Ativar assinatura usando a função utilitária - CHAMADA INTERNA SEGURA
     await activateSubscription(user._id, planId, {
       mercadoPagoPaymentId: paymentData.id,
       mercadoPagoPreferenceId: paymentData.additional_info?.external_reference,
       isWebhookInternal: true // FLAG PARA IDENTIFICAR CHAMADA SEGURA
     });
+
+    console.log('Assinatura ativada via webhook para usuário:', user.email);
 
     // TODO: Enviar email de confirmação
     // TODO: Notificar via Telegram se necessário

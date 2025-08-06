@@ -18,8 +18,8 @@ export default function MercadoPagoCheckout({ plan, onSuccess, onError }) {
     setError(null);
 
     try {
-      // Tentar primeiro a API real, depois fallback para demo
-      let response = await fetch('/api/pagamentos/create-preference', {
+      // Criar pagamento real via MercadoPago
+      const response = await fetch('/api/pagamentos/create-preference', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -29,24 +29,7 @@ export default function MercadoPagoCheckout({ plan, onSuccess, onError }) {
         })
       });
 
-      let data = await response.json();
-
-      // Se falhar por credenciais não configuradas, usar API demo
-      if (!response.ok && data.error?.includes('não configurado')) {
-        console.log('Credenciais não configuradas, usando modo demo...');
-        
-        response = await fetch('/api/pagamentos/demo-payment', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            planId: plan.id
-          })
-        });
-
-        data = await response.json();
-      }
+      const data = await response.json();
 
       if (!response.ok) {
         throw new Error(data.error || 'Erro ao criar pagamento');

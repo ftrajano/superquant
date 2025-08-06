@@ -45,24 +45,32 @@ const PagamentoPendenteContent = () => {
     }
   }, [planId, paymentId]);
 
-  // Verificar status do pagamento a cada 10 segundos
+  // Verificar status do pagamento específico a cada 10 segundos
   useEffect(() => {
     if (!paymentId) return;
 
     const checkPaymentStatus = async () => {
       try {
         setCheckingPayment(true);
-        const response = await fetch('/api/subscription/check', {
+        // VALIDAR O PAGAMENTO ESPECÍFICO, NÃO APENAS A ASSINATURA
+        const response = await fetch(`/api/pagamentos/check-status?payment_id=${paymentId}`, {
           method: 'GET'
         });
 
         if (response.ok) {
           const data = await response.json();
-          if (data.hasActiveSubscription) {
+          
+          // Só aprovar se o pagamento ESPECÍFICO foi aprovado
+          if (data.paymentStatus === 'approved' && data.isValidPayment) {
             setPaymentStatus('approved');
             // Redirecionar para página de sucesso após 2 segundos
             setTimeout(() => {
               window.location.href = `/pagamento/sucesso?plan=${planId}&payment_id=${paymentId}&status=approved`;
+            }, 2000);
+          } else if (data.paymentStatus === 'rejected') {
+            setPaymentStatus('rejected');
+            setTimeout(() => {
+              window.location.href = `/pagamento/erro?plan=${planId}&payment_id=${paymentId}&error=payment_rejected`;
             }, 2000);
           }
         }
@@ -102,6 +110,8 @@ const PagamentoPendenteContent = () => {
           <p className="text-lg text-[var(--text-secondary)] mb-6">
             {paymentStatus === 'approved' 
               ? 'Seu pagamento foi aprovado! Redirecionando...' 
+              : paymentStatus === 'rejected'
+              ? 'Seu pagamento foi recusado. Redirecionando...'
               : 'Seu pagamento está sendo processado. Você receberá uma confirmação em breve.'}
           </p>
 
@@ -134,8 +144,12 @@ const PagamentoPendenteContent = () => {
                 )}
                 <div className="flex justify-between">
                   <span>Status:</span>
-                  <span className={`font-medium ${paymentStatus === 'approved' ? 'text-green-600' : 'text-yellow-600'}`}>
-                    {paymentStatus === 'approved' ? 'Aprovado' : 'Em processamento'}
+                  <span className={`font-medium ${
+                    paymentStatus === 'approved' ? 'text-green-600' : 
+                    paymentStatus === 'rejected' ? 'text-red-600' : 'text-yellow-600'
+                  }`}>
+                    {paymentStatus === 'approved' ? 'Aprovado' : 
+                     paymentStatus === 'rejected' ? 'Recusado' : 'Em processamento'}
                   </span>
                 </div>
               </div>

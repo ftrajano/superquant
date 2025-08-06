@@ -29,39 +29,48 @@ const PagamentoSucessoContent = () => {
   const preferenceId = searchParams.get('preference_id');
 
   useEffect(() => {
-    // Informações dos planos atualizadas
-    if (planId) {
-      const planNames = {
-        monthly: 'Plano Mensal',
-        quarterly: 'Plano Trimestral',
-        yearly: 'Plano Anual'
-      };
-
-      const planPrices = {
-        monthly: 117.00,
-        quarterly: 329.00,
-        yearly: 1297.00
-      };
-
-      setPaymentInfo({
-        planName: planNames[planId] || 'Plano Desconhecido',
-        planPrice: planPrices[planId] || 0,
-        paymentId: paymentId
-      });
-
-      // Ativar assinatura automaticamente (demo ou real)
-      if (paymentId) {
-        activateSubscriptionDemo();
-      }
+    // PROTEÇÃO DUPLA: Só permitir acesso se vier de fluxo válido E não for acesso direto
+    if (!paymentId || !planId || status !== 'approved') {
+      setError('Acesso inválido à página de sucesso. Parâmetros obrigatórios em falta.');
+      return;
     }
-  }, [planId, paymentId]);
 
-  // Função para ativar assinatura em modo demo
-  const activateSubscriptionDemo = async () => {
+    // PROTEÇÃO ADICIONAL: Verificar se não é acesso direto à URL
+    if (!document.referrer || (!document.referrer.includes('/pagamento/pendente') && !document.referrer.includes('mercadopago'))) {
+      setError('Acesso direto não permitido. Deve vir do fluxo de pagamento válido.');
+      return;
+    }
+
+    // Informações dos planos atualizadas
+    const planNames = {
+      monthly: 'Plano Mensal',
+      quarterly: 'Plano Trimestral',
+      yearly: 'Plano Anual'
+    };
+
+    const planPrices = {
+      monthly: 117.00,
+      quarterly: 329.00,
+      yearly: 1297.00
+    };
+
+    setPaymentInfo({
+      planName: planNames[planId] || 'Plano Desconhecido',
+      planPrice: planPrices[planId] || 0,
+      paymentId: paymentId
+    });
+
+    // Ativar assinatura apenas se o pagamento foi validado
+    activateSubscription();
+  }, [planId, paymentId, status]);
+
+  // Função para ativar assinatura com validação de pagamento
+  const activateSubscription = async () => {
     console.log('🔥 INICIANDO ATIVAÇÃO:', { 
       userId: session?.user?.id, 
       planId, 
       paymentId,
+      status,
       activatingSubscription,
       subscriptionActivated 
     });
@@ -79,6 +88,21 @@ const PagamentoSucessoContent = () => {
 
     setActivatingSubscription(true);
     try {
+      // PRIMEIRO: Verificar se o pagamento é válido
+      const statusResponse = await fetch(`/api/pagamentos/check-status?payment_id=${paymentId}`);
+      
+      if (!statusResponse.ok) {
+        throw new Error('Erro ao verificar status do pagamento');
+      }
+
+      const statusData = await statusResponse.json();
+      
+      if (!statusData.isValidPayment || statusData.paymentStatus !== 'approved') {
+        setError('Pagamento não aprovado ou inválido');
+        return;
+      }
+
+      // SEGUNDO: Ativar assinatura apenas se pagamento foi validado
       const response = await fetch('/api/subscription/activate', {
         method: 'POST',
         headers: {
@@ -88,8 +112,8 @@ const PagamentoSucessoContent = () => {
           planId,
           paymentData: {
             mercadoPagoPaymentId: paymentId,
-            mercadoPagoPreferenceId: preferenceId
-            // Removido isDemo - agora vai validar pagamento real
+            mercadoPagoPreferenceId: preferenceId,
+            isPreValidated: true // Flag indicando que já foi validado
           }
         })
       });
@@ -123,10 +147,22 @@ const PagamentoSucessoContent = () => {
           </div>
 
           <h1 className="text-3xl font-bold text-[var(--text-primary)] mb-4">
-            Pagamento Realizado com Sucesso!
+            {error ? 'Acesso Negado' : 'Pagamento Realizado com Sucesso!'}
           </h1>
 
-          {activatingSubscription ? (
+          {error ? (
+            <div className="text-lg text-red-600 mb-6">
+              <p>❌ {error}</p>
+              <div className="mt-4">
+                <Link
+                  href="/assinatura"
+                  className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-[var(--primary)] hover:bg-[var(--primary-hover)] transition-colors !text-white"
+                >
+                  Fazer Novo Pagamento
+                </Link>
+              </div>
+            </div>
+          ) : activatingSubscription ? (
             <div className="text-lg text-[var(--text-secondary)] mb-6">
               <div className="flex items-center justify-center mb-2">
                 <div className="animate-spin h-5 w-5 border-2 border-blue-500 border-t-transparent rounded-full mr-2"></div>

@@ -11,7 +11,6 @@ const PUBLIC_ROUTES = [
   '/pagamento/sucesso',
   '/pagamento/erro',
   '/pagamento/pendente',
-  '/pagamento/demo-checkout',
   '/api/auth',
   '/api/usuarios/register',
   '/api/webhooks',

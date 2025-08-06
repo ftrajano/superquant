@@ -25,8 +25,8 @@ export async function POST(request) {
       );
     }
 
-    // VALIDAR PAGAMENTO REAL - Apenas aceitar se vier de webhook interno ou com payment_id válido
-    if (paymentData?.mercadoPagoPaymentId && !paymentData?.isWebhookInternal) {
+    // VALIDAR PAGAMENTO REAL - Apenas aceitar se vier de webhook interno, se foi pré-validado ou com payment_id válido
+    if (paymentData?.mercadoPagoPaymentId && !paymentData?.isWebhookInternal && !paymentData?.isPreValidated) {
       // Verificar se o pagamento existe e está aprovado no MercadoPago
       try {
         const paymentInfo = await getPaymentStatus(paymentData.mercadoPagoPaymentId);
