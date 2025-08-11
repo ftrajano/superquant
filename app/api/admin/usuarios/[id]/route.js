@@ -33,9 +33,9 @@ export async function PATCH(request, { params }) {
     // Conectar ao banco de dados
     await connectToDatabase();
     
-    // Verificar se o usuário atual é administrador
+    // Verificar se o usuário atual é administrador ou modelo
     const currentUser = await User.findOne({ email: session.user.email });
-    if (!currentUser || currentUser.role !== 'admin') {
+    if (!currentUser || (currentUser.role !== 'admin' && currentUser.role !== 'modelo')) {
       return NextResponse.json({ error: 'Acesso negado' }, { status: 403 });
     }
     
@@ -57,6 +57,14 @@ export async function PATCH(request, { params }) {
     if (targetUser.role === 'admin') {
       return NextResponse.json(
         { error: 'Não é possível alterar o papel de um administrador' },
+        { status: 403 }
+      );
+    }
+    
+    // Usuários modelo não podem alterar outros usuários modelo ou admins
+    if (currentUser.role === 'modelo' && (targetUser.role === 'modelo' || targetUser.role === 'admin')) {
+      return NextResponse.json(
+        { error: 'Usuários modelo só podem alterar usuários comuns' },
         { status: 403 }
       );
     }
@@ -110,9 +118,9 @@ export async function DELETE(request, { params }) {
     // Conectar ao banco de dados
     await connectToDatabase();
     
-    // Verificar se o usuário atual é administrador
+    // Verificar se o usuário atual é administrador ou modelo
     const currentUser = await User.findOne({ email: session.user.email });
-    if (!currentUser || currentUser.role !== 'admin') {
+    if (!currentUser || (currentUser.role !== 'admin' && currentUser.role !== 'modelo')) {
       return NextResponse.json({ error: 'Acesso negado' }, { status: 403 });
     }
     
@@ -134,6 +142,14 @@ export async function DELETE(request, { params }) {
     if (targetUser.role === 'admin') {
       return NextResponse.json(
         { error: 'Não é possível remover um administrador' },
+        { status: 403 }
+      );
+    }
+    
+    // Usuários modelo não podem remover outros usuários modelo ou admins
+    if (currentUser.role === 'modelo' && (targetUser.role === 'modelo' || targetUser.role === 'admin')) {
+      return NextResponse.json(
+        { error: 'Usuários modelo só podem remover usuários comuns' },
         { status: 403 }
       );
     }

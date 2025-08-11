@@ -16,10 +16,10 @@ export default function AdminUsuariosPage() {
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
 
-  // Verificar se é administrador
+  // Verificar se é administrador ou modelo
   useEffect(() => {
     if (status === 'authenticated') {
-      if (session?.user?.role !== 'admin') {
+      if (session?.user?.role !== 'admin' && session?.user?.role !== 'modelo') {
         router.replace('/');
       } else {
         fetchUsers();
@@ -124,7 +124,7 @@ export default function AdminUsuariosPage() {
     }
   };
 
-  if (status === 'loading' || (status === 'authenticated' && session?.user?.role !== 'admin')) {
+  if (status === 'loading' || (status === 'authenticated' && session?.user?.role !== 'admin' && session?.user?.role !== 'modelo')) {
     return (
       <div className="min-h-screen bg-[var(--surface-bg)]">
         <NavBar />
@@ -224,37 +224,49 @@ export default function AdminUsuariosPage() {
                       <td className="px-6 py-4 whitespace-nowrap text-sm">
                         {user.role !== 'admin' && (
                           <div className="flex flex-col space-y-2">
-                            {user.role === 'user' ? (
-                              <button
-                                onClick={() => {
-                                  console.log('Clicou em promover', user);
-                                  handleRoleChange(user._id.toString(), 'modelo');
-                                }}
-                                style={{ color: theme === 'dark' ? '#49db0f' : 'var(--success)' }}
-                                className="text-left"
-                              >
-                                Promover para Modelo
-                              </button>
-                            ) : (
-                              <button
-                                onClick={() => {
-                                  console.log('Clicou em remover modelo', user);
-                                  handleRoleChange(user._id.toString(), 'user');
-                                }}
-                                style={{ color: theme === 'dark' ? '#49db0f' : 'var(--info)' }}
-                                className="text-left"
-                              >
-                                Remover Modelo
-                              </button>
+                            {/* Usuários modelo só podem gerenciar usuários comuns */}
+                            {(session?.user?.role === 'admin' || user.role === 'user') && (
+                              <>
+                                {user.role === 'user' ? (
+                                  <button
+                                    onClick={() => {
+                                      console.log('Clicou em promover', user);
+                                      handleRoleChange(user._id.toString(), 'modelo');
+                                    }}
+                                    style={{ color: theme === 'dark' ? '#49db0f' : 'var(--success)' }}
+                                    className="text-left"
+                                  >
+                                    Promover para Modelo
+                                  </button>
+                                ) : (
+                                  <button
+                                    onClick={() => {
+                                      console.log('Clicou em remover modelo', user);
+                                      handleRoleChange(user._id.toString(), 'user');
+                                    }}
+                                    style={{ color: theme === 'dark' ? '#49db0f' : 'var(--info)' }}
+                                    className="text-left"
+                                  >
+                                    Remover Modelo
+                                  </button>
+                                )}
+                                
+                                <button
+                                  onClick={() => handleDeleteUser(user._id.toString(), user.name)}
+                                  style={{ color: theme === 'dark' ? '#fecaca' : '#dc2626' }}
+                                  className="text-left"
+                                >
+                                  Remover Usuário
+                                </button>
+                              </>
                             )}
                             
-                            <button
-                              onClick={() => handleDeleteUser(user._id.toString(), user.name)}
-                              style={{ color: theme === 'dark' ? '#fecaca' : '#dc2626' }}
-                              className="text-left"
-                            >
-                              Remover Usuário
-                            </button>
+                            {/* Mostrar mensagem para usuários que modelo não pode gerenciar */}
+                            {session?.user?.role === 'modelo' && user.role !== 'user' && (
+                              <span style={{ color: 'var(--text-secondary)' }} className="text-xs italic">
+                                Sem permissão para alterar
+                              </span>
+                            )}
                           </div>
                         )}
                       </td>

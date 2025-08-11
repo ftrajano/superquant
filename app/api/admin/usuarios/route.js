@@ -23,7 +23,7 @@ export async function GET(_request) {
     const currentUser = await User.findOne({ email: session.user.email });
     console.log('Usuário encontrado:', currentUser ? 'Sim' : 'Não');
     
-    if (!currentUser || currentUser.role !== 'admin') {
+    if (!currentUser || (currentUser.role !== 'admin' && currentUser.role !== 'modelo')) {
       return NextResponse.json({ error: 'Acesso negado' }, { status: 403 });
     }
 
