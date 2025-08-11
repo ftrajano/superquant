@@ -65,7 +65,7 @@ export async function middleware(request) {
 
   // Se é rota de admin, verificar role
   if (isAdminRoute) {
-    if (token.role !== 'admin') {
+    if (token.role !== 'admin' && token.role !== 'modelo') {
       return NextResponse.redirect(new URL('/', request.url));
     }
     return NextResponse.next();
