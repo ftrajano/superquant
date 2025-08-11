@@ -7,6 +7,7 @@ const PUBLIC_ROUTES = [
   '/',
   '/login',
   '/cadastro',
+  '/auth/confirm-email',
   '/assinatura',
   '/pagamento/sucesso',
   '/pagamento/erro',

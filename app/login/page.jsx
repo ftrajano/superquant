@@ -25,7 +25,12 @@ export default function LoginPage() {
       });
 
       if (result.error) {
-        setError('Email ou senha inválidos');
+        // Se o erro contém informação sobre email não confirmado, mostrar a mensagem específica
+        if (result.error.includes('Email não confirmado')) {
+          setError('Email não confirmado. Verifique sua caixa de entrada e confirme seu email antes de fazer login.');
+        } else {
+          setError('Email ou senha inválidos');
+        }
       } else {
         router.replace('/');
         router.refresh();
