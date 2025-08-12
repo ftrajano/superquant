@@ -85,7 +85,6 @@ export async function GET(request) {
     
     // Obter o ID do usuário atual para filtrar as operações
     const userId = session.user.id;
-    console.log('API Relatórios: Filtrando por userId:', userId);
     
     await connectToDatabase();
     
@@ -239,7 +238,6 @@ export async function GET(request) {
       ];
     }
     
-    console.log('Query para operações fechadas:', JSON.stringify(queryOperacoesFechadas));
     
     let operacoesFechadasPeriodo = [];
     try {
@@ -247,7 +245,6 @@ export async function GET(request) {
         .sort({ dataFechamento: -1 })
         .lean(); // Usar lean() para melhor performance, retornando objetos JS simples
       
-      console.log(`Encontradas ${operacoesFechadasPeriodo.length} operações fechadas`);
     } catch (dbError) {
       console.error('Erro ao buscar operações fechadas:', dbError);
       // Continuar com um array vazio em vez de falhar completamente
@@ -267,7 +264,6 @@ export async function GET(request) {
       queryTodasOperacoes.dataAbertura = filtroConsulta.dataAbertura;
     }
     
-    console.log('Query para todas operações:', JSON.stringify(queryTodasOperacoes));
     
     let todasOperacoes = [];
     try {
@@ -275,7 +271,6 @@ export async function GET(request) {
         .sort({ dataAbertura: -1 })
         .lean(); // Usar lean() para melhor performance
       
-      console.log(`Encontradas ${todasOperacoes.length} operações no total`);
     } catch (dbError) {
       console.error('Erro ao buscar todas as operações:', dbError);
       // Continuar com um array vazio em vez de falhar completamente
@@ -301,7 +296,6 @@ export async function GET(request) {
       return false;
     });
     
-    console.log(`${operacoesParaMetricas.length} operações filtradas para cálculo de métricas`);
     
     // === MÉTRICAS GERAIS ===
     // Garantir que as operações existem e são arrays antes de usar métodos de array
@@ -316,6 +310,7 @@ export async function GET(request) {
       const valor = op && typeof op.resultadoTotal === 'number' ? op.resultadoTotal : 0;
       return sum + valor;
     }, 0);
+    
     
     // Contar operações lucrativas com proteção contra valores inválidos
     const operacoesLucrativas = operacoesParaMetricasValidas.filter(op => 
@@ -383,12 +378,10 @@ export async function GET(request) {
       );
     }
     
-    console.log('Query para período anterior:', JSON.stringify(queryPeriodoAnterior));
     
     let operacoesPeriodoAnterior = [];
     try {
       operacoesPeriodoAnterior = await Operacao.find(queryPeriodoAnterior).lean();
-      console.log(`Encontradas ${operacoesPeriodoAnterior.length} operações do período anterior`);
     } catch (dbError) {
       console.error('Erro ao buscar operações do período anterior:', dbError);
       // Continuar com um array vazio em vez de falhar completamente
@@ -438,7 +431,6 @@ export async function GET(request) {
       valor: operacoesPorDirecao[direcao]
     }));
     
-    console.log(`Total de operações encontradas: ${todasOperacoes.length}, das quais ${operacoesFechadasPeriodo.length} estão fechadas`);
     
     // === DADOS PARA OS GRÁFICOS ===
 

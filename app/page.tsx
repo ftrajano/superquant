@@ -137,7 +137,7 @@ export default function Home() {
                     color: theme === 'dark' ? 'var(--color-dark-900)' : 'white'
                   }}
                 >
-                  Experimente Grátis
+                  Começar Agora
                 </Link>
                 <Link
                   href="/login"

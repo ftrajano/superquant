@@ -29,7 +29,6 @@ export default function RelatoriosPage() {
           url += `&mes=${mesEspecificoSelecionado}&ano=${anoEspecificoSelecionado}`;
         }
         
-        console.log('Buscando dados em:', url);
         const response = await fetch(url);
         
         if (!response.ok) {
@@ -57,7 +56,6 @@ export default function RelatoriosPage() {
         let data;
         try {
           data = await response.json();
-          console.log("Dados recebidos da API:", data);
           
           // Garantir que os dados estejam no formato esperado
           const processedData = {
@@ -81,7 +79,6 @@ export default function RelatoriosPage() {
           };
           
           setDashboardData(processedData);
-          console.log("Dados processados:", processedData);
         } catch (jsonError) {
           console.error('Erro ao parsear JSON da resposta:', jsonError);
           throw new Error('Formato de resposta inválido. A API retornou dados em um formato inesperado.');
@@ -143,11 +140,11 @@ export default function RelatoriosPage() {
       if (Math.abs(valorNumerico) >= 1000) {
         const valorEmK = valorNumerico / 1000;
         // Arredondar para 1 casa decimal se necessário
-        const valorFormatado = valorEmK.toFixed(Math.abs(valorEmK) % 1 > 0.1 ? 1 : 0);
+        const valorFormatado = Math.abs(valorEmK).toFixed(Math.abs(valorEmK) % 1 > 0.1 ? 1 : 0);
         return `R$ ${valorNumerico < 0 ? '-' : ''}${valorFormatado}k`;
       } else {
         // Para valores menores, usar formato normal com até 1 casa decimal
-        const valorFormatado = valorNumerico.toFixed(Math.abs(valorNumerico) % 1 > 0.1 ? 1 : 0);
+        const valorFormatado = Math.abs(valorNumerico).toFixed(Math.abs(valorNumerico) % 1 > 0.1 ? 1 : 0);
         return `R$ ${valorNumerico < 0 ? '-' : ''}${valorFormatado}`;
       }
     } catch (e) {
