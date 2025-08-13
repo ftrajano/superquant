@@ -168,12 +168,23 @@ export async function POST(request, { params }) {
       try {
         const usuario = await User.findById(session.user.id);
         if (usuario && usuario.role === 'modelo') {
-          console.log('Enviando notificação de fechamento parcial para o Telegram...');
-          await notifyOperacaoFechamento(novaOperacaoFechada);
-          console.log('Notificação do Telegram enviada com sucesso');
+          console.log('🤖 TELEGRAM DEBUG: Enviando notificação de fechamento parcial para o Telegram...');
+          console.log('🤖 TELEGRAM DEBUG: Usuário modelo encontrado:', { id: usuario._id, name: usuario.name, email: usuario.email });
+          console.log('🤖 TELEGRAM DEBUG: Dados da operação fechada:', { idVisual: novaOperacaoFechada.idVisual, ticker: novaOperacaoFechada.ticker, resultado: novaOperacaoFechada.resultadoTotal });
+          
+          const telegramResult = await notifyOperacaoFechamento(novaOperacaoFechada);
+          
+          if (telegramResult) {
+            console.log('🤖 TELEGRAM DEBUG: ✅ Notificação de fechamento parcial enviada com sucesso');
+          } else {
+            console.log('🤖 TELEGRAM DEBUG: ❌ Falha ao enviar notificação de fechamento parcial');
+          }
+        } else {
+          console.log('🤖 TELEGRAM DEBUG: Usuário não é modelo, não enviando notificação de fechamento parcial');
+          console.log('🤖 TELEGRAM DEBUG: Dados do usuário:', usuario ? { id: usuario._id, name: usuario.name, email: usuario.email, role: usuario.role } : 'Usuário não encontrado');
         }
       } catch (telegramError) {
-        console.error('Erro ao enviar notificação do Telegram:', telegramError);
+        console.error('🤖 TELEGRAM DEBUG: ❌ Erro ao enviar notificação do Telegram:', telegramError);
         // Não falhar a operação principal por causa do Telegram
       }
       
@@ -213,12 +224,23 @@ export async function POST(request, { params }) {
       try {
         const usuario = await User.findById(session.user.id);
         if (usuario && usuario.role === 'modelo') {
-          console.log('Enviando notificação de fechamento total para o Telegram...');
-          await notifyOperacaoFechamento(operacaoAtualizada);
-          console.log('Notificação do Telegram enviada com sucesso');
+          console.log('🤖 TELEGRAM DEBUG: Enviando notificação de fechamento total para o Telegram...');
+          console.log('🤖 TELEGRAM DEBUG: Usuário modelo encontrado:', { id: usuario._id, name: usuario.name, email: usuario.email });
+          console.log('🤖 TELEGRAM DEBUG: Dados da operação fechada:', { idVisual: operacaoAtualizada.idVisual, ticker: operacaoAtualizada.ticker, resultado: operacaoAtualizada.resultadoTotal });
+          
+          const telegramResult = await notifyOperacaoFechamento(operacaoAtualizada);
+          
+          if (telegramResult) {
+            console.log('🤖 TELEGRAM DEBUG: ✅ Notificação de fechamento total enviada com sucesso');
+          } else {
+            console.log('🤖 TELEGRAM DEBUG: ❌ Falha ao enviar notificação de fechamento total');
+          }
+        } else {
+          console.log('🤖 TELEGRAM DEBUG: Usuário não é modelo, não enviando notificação de fechamento total');
+          console.log('🤖 TELEGRAM DEBUG: Dados do usuário:', usuario ? { id: usuario._id, name: usuario.name, email: usuario.email, role: usuario.role } : 'Usuário não encontrado');
         }
       } catch (telegramError) {
-        console.error('Erro ao enviar notificação do Telegram:', telegramError);
+        console.error('🤖 TELEGRAM DEBUG: ❌ Erro ao enviar notificação do Telegram:', telegramError);
         // Não falhar a operação principal por causa do Telegram
       }
       

@@ -358,15 +358,24 @@ export async function POST(request) {
       
       // Enviar notificação para o Telegram
       try {
-        console.log('Enviando notificação para o Telegram...');
-        await notifyOperacaoAbertura(novaOperacao);
-        console.log('Notificação do Telegram enviada com sucesso');
+        console.log('🤖 TELEGRAM DEBUG: Enviando notificação para o Telegram...');
+        console.log('🤖 TELEGRAM DEBUG: Usuário modelo encontrado:', { id: usuario._id, name: usuario.name, email: usuario.email });
+        console.log('🤖 TELEGRAM DEBUG: Dados da operação:', { idVisual: novaOperacao.idVisual, ticker: novaOperacao.ticker, tipo: novaOperacao.tipo });
+        
+        const telegramResult = await notifyOperacaoAbertura(novaOperacao);
+        
+        if (telegramResult) {
+          console.log('🤖 TELEGRAM DEBUG: ✅ Notificação do Telegram enviada com sucesso');
+        } else {
+          console.log('🤖 TELEGRAM DEBUG: ❌ Falha ao enviar notificação do Telegram');
+        }
       } catch (telegramError) {
-        console.error('Erro ao enviar notificação do Telegram:', telegramError);
+        console.error('🤖 TELEGRAM DEBUG: ❌ Erro ao enviar notificação do Telegram:', telegramError);
         // Não falhar a operação principal por causa do Telegram
       }
     } else {
-      console.log('Usuário não é modelo, não registrando no histórico');
+      console.log('🤖 TELEGRAM DEBUG: Usuário não é modelo, não enviando notificação');
+      console.log('🤖 TELEGRAM DEBUG: Dados do usuário:', usuario ? { id: usuario._id, name: usuario.name, email: usuario.email, role: usuario.role } : 'Usuário não encontrado');
     }
     
     return NextResponse.json(novaOperacao, { status: 201 });
