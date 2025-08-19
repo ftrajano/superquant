@@ -15,6 +15,9 @@ export default function AdminUsuariosPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [newPassword, setNewPassword] = useState('');
 
   // Verificar se é administrador ou modelo
   useEffect(() => {
@@ -91,6 +94,73 @@ export default function AdminUsuariosPage() {
     }
   };
   
+  // Confirmar email do usuário
+  const handleConfirmEmail = async (userId, userName) => {
+    try {
+      if (!confirm(`Confirmar email do usuário ${userName}?`)) {
+        return;
+      }
+      
+      setSuccess(null);
+      setError(null);
+      
+      const response = await fetch('/api/admin/debug-user', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          email: users.find(u => u._id.toString() === userId)?.email,
+          action: 'confirm_email' 
+        }),
+      });
+      
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Erro ao confirmar email');
+      }
+      
+      setSuccess(`Email de ${userName} confirmado com sucesso!`);
+      setTimeout(() => setSuccess(null), 3000);
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
+  // Alterar senha do usuário
+  const handleChangePassword = async () => {
+    try {
+      if (!newPassword || newPassword.length < 6) {
+        setError('Nova senha deve ter pelo menos 6 caracteres');
+        return;
+      }
+      
+      setSuccess(null);
+      setError(null);
+      
+      const response = await fetch(`/api/admin/usuarios/${selectedUser._id}/change-password`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ newPassword }),
+      });
+      
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Erro ao alterar senha');
+      }
+      
+      setSuccess(`Senha de ${selectedUser.name} alterada com sucesso!`);
+      setShowPasswordModal(false);
+      setSelectedUser(null);
+      setNewPassword('');
+      setTimeout(() => setSuccess(null), 3000);
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
   // Remover usuário
   const handleDeleteUser = async (userId, userName) => {
     try {
@@ -251,6 +321,30 @@ export default function AdminUsuariosPage() {
                                   </button>
                                 )}
                                 
+                                {/* Apenas admin pode alterar senhas */}
+                                {session?.user?.role === 'admin' && (
+                                  <>
+                                    <button
+                                      onClick={() => {
+                                        setSelectedUser(user);
+                                        setShowPasswordModal(true);
+                                      }}
+                                      style={{ color: theme === 'dark' ? '#49db0f' : 'var(--warning)' }}
+                                      className="text-left"
+                                    >
+                                      Alterar Senha
+                                    </button>
+                                    
+                                    <button
+                                      onClick={() => handleConfirmEmail(user._id.toString(), user.name)}
+                                      style={{ color: theme === 'dark' ? '#60a5fa' : 'var(--info)' }}
+                                      className="text-left"
+                                    >
+                                      Confirmar Email
+                                    </button>
+                                  </>
+                                )}
+                                
                                 <button
                                   onClick={() => handleDeleteUser(user._id.toString(), user.name)}
                                   style={{ color: theme === 'dark' ? '#fecaca' : '#dc2626' }}
@@ -275,6 +369,52 @@ export default function AdminUsuariosPage() {
                 )}
               </tbody>
             </table>
+          </div>
+        )}
+
+        {/* Modal para alterar senha */}
+        {showPasswordModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-[var(--surface-card)] rounded-lg p-6 w-full max-w-md">
+              <h3 className="text-lg font-semibold mb-4 text-[var(--text-primary)]">
+                Alterar Senha de {selectedUser?.name}
+              </h3>
+              
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                  Nova Senha
+                </label>
+                <input
+                  type="password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  className="w-full px-3 py-2 border border-[var(--surface-border)] rounded-md bg-[var(--surface-bg)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-primary"
+                  placeholder="Digite a nova senha (mínimo 6 caracteres)"
+                  minLength={6}
+                />
+              </div>
+              
+              <div className="flex justify-end space-x-3">
+                <button
+                  onClick={() => {
+                    setShowPasswordModal(false);
+                    setSelectedUser(null);
+                    setNewPassword('');
+                    setError(null);
+                  }}
+                  className="px-4 py-2 text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={handleChangePassword}
+                  className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary-dark"
+                  disabled={!newPassword || newPassword.length < 6}
+                >
+                  Alterar Senha
+                </button>
+              </div>
+            </div>
           </div>
         )}
       </div>
