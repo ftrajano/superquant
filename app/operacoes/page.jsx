@@ -100,18 +100,18 @@ const OperacoesContent = () => {
   
   // Lista de meses para as abas
   const meses = [
-    { value: 'janeiro', label: 'Janeiro' },
-    { value: 'fevereiro', label: 'Fevereiro' },
-    { value: 'marco', label: 'Março' },
-    { value: 'abril', label: 'Abril' },
-    { value: 'maio', label: 'Maio' },
-    { value: 'junho', label: 'Junho' },
-    { value: 'julho', label: 'Julho' },
-    { value: 'agosto', label: 'Agosto' },
-    { value: 'setembro', label: 'Setembro' },
-    { value: 'outubro', label: 'Outubro' },
-    { value: 'novembro', label: 'Novembro' },
-    { value: 'dezembro', label: 'Dezembro' },
+    { value: 'janeiro', label: 'Janeiro (A/M)' },
+    { value: 'fevereiro', label: 'Fevereiro (B/N)' },
+    { value: 'marco', label: 'Março (C/O)' },
+    { value: 'abril', label: 'Abril (D/P)' },
+    { value: 'maio', label: 'Maio (E/Q)' },
+    { value: 'junho', label: 'Junho (F/R)' },
+    { value: 'julho', label: 'Julho (G/S)' },
+    { value: 'agosto', label: 'Agosto (H/T)' },
+    { value: 'setembro', label: 'Setembro (I/U)' },
+    { value: 'outubro', label: 'Outubro (J/V)' },
+    { value: 'novembro', label: 'Novembro (K/W)' },
+    { value: 'dezembro', label: 'Dezembro (L/X)' },
     { value: 'todas', label: 'Todas' }
   ];
   
