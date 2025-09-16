@@ -100,19 +100,19 @@ const OperacoesContent = () => {
   
   // Lista de meses para as abas
   const meses = [
-    { value: 'janeiro', label: 'Janeiro (A/M)' },
-    { value: 'fevereiro', label: 'Fevereiro (B/N)' },
-    { value: 'marco', label: 'Março (C/O)' },
-    { value: 'abril', label: 'Abril (D/P)' },
-    { value: 'maio', label: 'Maio (E/Q)' },
-    { value: 'junho', label: 'Junho (F/R)' },
-    { value: 'julho', label: 'Julho (G/S)' },
-    { value: 'agosto', label: 'Agosto (H/T)' },
-    { value: 'setembro', label: 'Setembro (I/U)' },
-    { value: 'outubro', label: 'Outubro (J/V)' },
-    { value: 'novembro', label: 'Novembro (K/W)' },
-    { value: 'dezembro', label: 'Dezembro (L/X)' },
-    { value: 'todas', label: 'Todas' }
+    { value: 'janeiro', label: 'Janeiro', letters: 'A/M' },
+    { value: 'fevereiro', label: 'Fevereiro', letters: 'B/N' },
+    { value: 'marco', label: 'Março', letters: 'C/O' },
+    { value: 'abril', label: 'Abril', letters: 'D/P' },
+    { value: 'maio', label: 'Maio', letters: 'E/Q' },
+    { value: 'junho', label: 'Junho', letters: 'F/R' },
+    { value: 'julho', label: 'Julho', letters: 'G/S' },
+    { value: 'agosto', label: 'Agosto', letters: 'H/T' },
+    { value: 'setembro', label: 'Setembro', letters: 'I/U' },
+    { value: 'outubro', label: 'Outubro', letters: 'J/V' },
+    { value: 'novembro', label: 'Novembro', letters: 'K/W' },
+    { value: 'dezembro', label: 'Dezembro', letters: 'L/X' },
+    { value: 'todas', label: 'Todas', letters: '' }
   ];
   
   // Redirecionar para login se não estiver autenticado
