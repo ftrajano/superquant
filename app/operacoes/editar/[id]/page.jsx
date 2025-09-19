@@ -125,13 +125,19 @@ export default function EditarOperacaoPage() {
         throw new Error('Quantidade é obrigatória e deve ser um número positivo');
       }
 
+      // Calcular valor total automaticamente
+      const preco = parseFloat(formData.preco);
+      const quantidade = parseInt(formData.quantidade);
+      const valorTotal = preco * quantidade;
+
       const operacaoAtualizada = {
         ticker: formData.ticker.trim(),
         tipo: formData.tipo,
         direcao: formData.direcao,
         strike: parseFloat(formData.strike),
-        preco: parseFloat(formData.preco),
-        quantidade: parseInt(formData.quantidade),
+        preco: preco,
+        quantidade: quantidade,
+        valorTotal: valorTotal, // ✅ Adicionar valor total calculado
         margemUtilizada: formData.margemUtilizada ? parseFloat(formData.margemUtilizada) : 0,
         observacoes: formData.observacoes || '',
         corEstrategia: formData.corEstrategia || null,
