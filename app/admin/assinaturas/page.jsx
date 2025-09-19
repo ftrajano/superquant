@@ -153,12 +153,22 @@ export default function ControleAssinaturas() {
       
       <div className="max-w-7xl mx-auto py-6 px-4">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-[var(--text-primary)] mb-2">
-            Controle de Assinaturas
-          </h1>
-          <p className="text-[var(--text-secondary)]">
-            Gerencie assinaturas dos usuários - Ativar, estender ou desativar acessos
-          </p>
+          <div className="flex justify-between items-start">
+            <div>
+              <h1 className="text-3xl font-bold text-[var(--text-primary)] mb-2">
+                Controle de Assinaturas
+              </h1>
+              <p className="text-[var(--text-secondary)]">
+                Gerencie assinaturas dos usuários - Ativar, estender ou desativar acessos
+              </p>
+            </div>
+            <button
+              onClick={() => router.push('/admin/contabilidade')}
+              className="bg-green-600 hover:bg-green-700 text-white font-bold px-6 py-3 rounded-lg shadow-md transition-colors"
+            >
+              📊 Relatório Contábil
+            </button>
+          </div>
         </div>
 
         {/* Filtros */}
